@@ -1,0 +1,148 @@
+/*
+ * MidiGym Stylesheet
+ * Design Philosophy: High-contrast, minimalistic aesthetic with focused interactive elements
+ * Color scheme uses bold blues and yellows against dark backgrounds for maximum readability
+ */
+
+:root {
+  --header-color: #689fe8;
+  --accent-color: #f9f570;
+  --header-color-clear: rgba(104, 159, 232, 0.611);
+  --accent-color-clear: #f9f470be;
+  --text-color: white;
+  --background-color: rgb(30, 30, 30);  /* Darker background */
+}
+
+body {
+  margin: 0;
+  font-family: monospace;
+  background: var(--background-color);
+  color: var(--text-color);
+}
+
+h1 {
+    color: var(--header-color);
+    text-align: center;
+}
+
+/* Button styles */
+.wide-hollow-button {
+  background-color: transparent;  /* Use transparent instead of var to ensure it always matches */
+  color: var(--text-color);
+  text-transform: uppercase;
+  font-weight: bold;
+  padding: 16px 28px;  /* Match the wide-button padding */
+  border: 3px solid var(--text-color);
+  border-radius: 8px;
+  cursor: pointer;
+  min-width: 200px;
+  transition: all 0.2s ease;
+  font-size: 1.2rem;  /* Match the wide-button font size */
+  font-family: monospace;
+}
+
+.wide-hollow-button:hover {
+  background-color: var(--text-color);  /* Match the white border color on hover */
+  color: var(--background-color);
+}
+
+.wide-button {
+  background-color: var(--header-color);
+  color: black;
+  text-transform: uppercase;
+  font-weight: bold;
+  padding: 16px 28px;  /* Increased padding for taller button */
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  min-width: 200px;
+  transition: all 0.3s ease;
+  font-size: 1.2rem;  /* Larger text */
+  font-family: monospace;  /* Ensure monospace font */
+}
+
+.wide-button:hover {
+  transform: scale(1.05);
+  box-shadow: 
+    0 0 0 2px var(--accent-color),
+    0 0 0 4px #ff4757,
+    0 0 0 6px #5f27cd,
+    0 0 0 8px #00d2d3,
+    0 0 0 10px #ff6b6b,
+    0 0 0 12px white,
+    0 0 20px rgba(249, 245, 112, 0.8),
+    0 0 30px rgba(255, 71, 87, 0.6),
+    0 0 40px rgba(95, 39, 205, 0.4);
+}
+
+.small-button {
+  background-color: var(--header-color);
+  color: black;
+  text-transform: uppercase;
+  font-weight: bold;
+  padding: 16px;  /* Square aspect ratio */
+  width: 48px;     /* Set width equal to total height (padding + content) */
+  height: 48px;    /* Set height equal to total width */
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: monospace;
+  display: inline-flex;   /* Use flexbox for centering */
+  align-items: center;
+  justify-content: center;
+}
+
+.small-button-hollow {
+  background-color: transparent;  /* Use transparent instead of var */
+  color: var(--text-color);
+  text-transform: uppercase;
+  font-weight: bold;
+  padding: 16px;  /* Square aspect ratio */
+  width: 48px;    /* Match small-button dimensions */
+  height: 48px;
+  border: 3px solid var(--text-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: monospace;
+  display: inline-flex;   /* Use flexbox for centering */
+  align-items: center;
+  justify-content: center;
+}
+
+.small-button-hollow:hover {
+  background-color: var(--text-color);  /* Match the white border color on hover */
+  color: var(--background-color);
+}
+
+/* Also ensure monospace is consistent across all button types */
+.wide-hollow-button,
+.small-button,
+.small-button-hollow {
+  font-family: monospace;
+}
+
+/* Text styles */
+p {
+  text-align: center;
+  font-size: 1.2rem;
+  line-height: 1.6;
+}
+
+strong {
+  color: var(--accent-color);
+}
+
+/* Form elements */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+textarea {
+  background-color: black;
+  color: white;
+  border-radius: 6px;
+  padding: 8px 12px;
+  border: 1px solid #444;
+  caret-color: white;
+}
