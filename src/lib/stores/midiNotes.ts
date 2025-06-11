@@ -10,6 +10,12 @@ export const midiKeyboards = writable<Input[]>([]);
 // Internal set to track active notes
 const activeNotes = new Set<string>();
 
+// Utility: Safely clear all currently playing notes (from anywhere)
+export function clearCurrentNotes() {
+  activeNotes.clear();
+  currentNotes.set([]);
+}
+
 // Map of computer keyboard keys to MIDI note names (starting at C3)
 const keyToNote: Record<string, string> = {
   // Bottom row
