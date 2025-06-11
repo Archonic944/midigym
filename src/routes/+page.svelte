@@ -4,6 +4,7 @@
     import type { CardOption } from "$lib/types/CardOption";
     import Piano from "$lib/components/Piano.svelte";
     import GameArea from "$lib/components/GameArea.svelte";
+    import Results from "$lib/components/Results.svelte";
 
     import { currentNotes, setupMidiAndKeyboard } from "$lib/stores/midiNotes";
     import RowPicker from "$lib/components/RowPicker.svelte";
@@ -18,12 +19,19 @@
     let selectedDurationSeconds: string | null = null;
     let selectedDurationLength: string | null = null;
     let selectedChordTypes: string[] = [];
-    let gameStarted = false;
     let chordsList: Array<{ name: string; notes: string[] }> = [];
     let timer = 0;
     let correctCountPage = 0;
+    let incorrectCountPage = 0;
     let chordsLeftTotal = 0;
     let timerInterval: ReturnType<typeof setInterval>;
+    let gameStartTime: number;
+    let gameFinished = false;
+    let finishedStats: { cpm: number; accuracy: number; correct: number; incorrect: number; durationSeconds: number | null; durationLength: string | null; chordTypes: string[]; allChordTypes: string[] } | null = null;
+
+    // State machine for page: 'input', 'settings', 'game', 'stats'
+    type PageState = 'input' | 'settings' | 'game' | 'stats';
+    let pageState: PageState = 'input';
 
     // Handle mutual exclusivity for duration options
     function handleSecondsSelection(option: string) {
@@ -52,9 +60,11 @@
         if (card.title === "Computer Keyboard") {
             setupMidiAndKeyboard("keyboard");
             setupComplete = true;
+            pageState = 'settings';
         } else if (card.title === "MIDI Keyboard") {
             setupMidiAndKeyboard("midi");
             showMidiModal = true;
+            pageState = 'settings';
         }
     }
 
@@ -62,10 +72,12 @@
         showMidiModal = false;
         if (selectedCard && selectedCard.title === "MIDI Keyboard") {
             setupComplete = true;
+            pageState = 'settings';
         }
     }
 
     function startGame() {
+        finishedStats = null;
         const { durationSeconds, durationLength } = $gameSettings;
         if (durationSeconds) {
             timer = parseInt(durationSeconds);
@@ -77,14 +89,50 @@
             ? chordsLeftTotal
             : 100;
         chordsList = generateChords($gameSettings, count);
-        gameStarted = true;
+        incorrectCountPage = 0;
+        correctCountPage = 0;
+        gameStartTime = Date.now();
         if (durationSeconds) {
             timerInterval = setInterval(() => {
                 timer--;
                 if (timer <= 0) clearInterval(timerInterval);
             }, 1000);
         }
+        pageState = 'game';
     }
+
+    function handleGameProgress(e) {
+        correctCountPage = e.detail.correctCount;
+    }
+
+    function handleGameIncorrect() {
+        incorrectCountPage++;
+    }
+
+    function handleGameFinished() {
+        // Calculate stats
+        const totalChords = correctCountPage + incorrectCountPage;
+        const elapsedMs = Date.now() - gameStartTime;
+        const elapsedMin = elapsedMs / 60000;
+        const cpm = elapsedMin > 0 ? correctCountPage / elapsedMin : correctCountPage;
+        const accuracy = totalChords > 0 ? (correctCountPage / totalChords) * 100 : 100;
+        finishedStats = {
+            cpm,
+            accuracy,
+            correct: correctCountPage,
+            incorrect: incorrectCountPage,
+            durationSeconds: elapsedMs / 1000,
+            durationLength: $gameSettings.durationLength,
+            chordTypes: $gameSettings.chordTypes,
+            allChordTypes: finishedStats?.allChordTypes || [] // unchanged
+        };
+        pageState = 'stats';
+    }
+
+    function playAgain() {
+        startGame();
+    }
+
     onDestroy(() => clearInterval(timerInterval));
 </script>
 
@@ -93,7 +141,7 @@
     Your interactive platform for <strong>learning and practicing</strong> MIDI skills.
 </p>
 
-{#if !setupComplete}
+{#if pageState === 'input'}
     <div class="centered-picker">
         <CardPicker
             onPick={onOptionPicked}
@@ -114,60 +162,73 @@
         />
         <MidiSetupModal open={showMidiModal} onClose={handleMidiModalClose} />
     </div>
-{:else}
-    {#if !gameStarted}
-        <div class="main-layout">
-            <div class="notes-list-debug">
-                Notes: <br />
-                {#each $currentNotes as note}
-                    {note}
-                {/each}
-            </div>
-            <div class="content-boxes">
-                <div class="content-box duration-box">
-                    <h3>Duration</h3>
-                    <div class="duration-subsection">
-                        <h4>Seconds</h4>
-                        <RowPicker
-                            selectedOption={selectedDurationSeconds}
-                            options={["30s", "60s", "90s", "120s"]}
-                            onSelect={handleSecondsSelection}
-                        />
-                    </div>
-                    <div class="duration-subsection">
-                        <h4>Length</h4>
-                        <RowPicker
-                            selectedOption={selectedDurationLength}
-                            options={["x10", "x15", "x30", "x60"]}
-                            onSelect={handleLengthSelection}
-                        />
-                    </div>
-                    <button class="wide-button go-button" on:click={startGame}>Go</button>
-                </div>
-                
-                <div class="content-box chord-types-box">
-                    <h3>Chord Types</h3>
-                    <CheckboxPicker
-                        selectedOptions={selectedChordTypes}
-                        onSelectionChange={handleChordTypesChange}
+{:else if pageState === 'settings'}
+    <div class="main-layout">
+        <div class="notes-list-debug">
+            Notes: <br />
+            {#each $currentNotes as note}
+                {note}
+            {/each}
+        </div>
+        <div class="content-boxes">
+            <div class="content-box duration-box">
+                <h3>Duration</h3>
+                <div class="duration-subsection">
+                    <h4>Seconds</h4>
+                    <RowPicker
+                        selectedOption={selectedDurationSeconds}
+                        options={["30s", "60s", "90s", "120s"]}
+                        onSelect={handleSecondsSelection}
                     />
                 </div>
+                <div class="duration-subsection">
+                    <h4>Length</h4>
+                    <RowPicker
+                        selectedOption={selectedDurationLength}
+                        options={["x10", "x15", "x30", "x60"]}
+                        onSelect={handleLengthSelection}
+                    />
+                </div>
+                <button class="wide-button go-button" on:click={startGame}>Go</button>
+            </div>
+            
+            <div class="content-box chord-types-box">
+                <h3>Chord Types</h3>
+                <CheckboxPicker
+                    selectedOptions={selectedChordTypes}
+                    onSelectionChange={handleChordTypesChange}
+                />
             </div>
         </div>
-    {:else}
-        <div class="game-screen">
-            {#if $gameSettings.durationSeconds}
-                <div class="timer">Time Left: {timer}s</div>
-            {:else}
-                <div class="timer">Chords Left: {chordsLeftTotal - correctCountPage}</div>
-            {/if}
-            <GameArea
-                chords={chordsList}
-                on:progress={(e) => correctCountPage = e.detail.correctCount}
-            />
-        </div>
-    {/if}
+    </div>
+{:else if pageState === 'stats' && finishedStats}
+    <Results
+        cpm={finishedStats.cpm}
+        accuracy={finishedStats.accuracy}
+        correct={finishedStats.correct}
+        incorrect={finishedStats.incorrect}
+        durationSeconds={finishedStats.durationSeconds}
+        durationLength={finishedStats.durationLength}
+        chordTypes={finishedStats.chordTypes}
+        allChordTypes={finishedStats.allChordTypes}
+        onPlayAgain={playAgain}
+    />
+{:else if pageState === 'game'}
+    <div class="game-screen">
+        {#if $gameSettings.durationSeconds}
+            <div class="timer">Time Left: {timer}s</div>
+        {:else}
+            <div class="timer">Chords Left: {chordsLeftTotal - correctCountPage}</div>
+        {/if}
+        <GameArea
+            chords={chordsList}
+            on:progress={handleGameProgress}
+            on:incorrect={handleGameIncorrect}
+            on:finished={handleGameFinished}
+        />
+    </div>
 {/if}
+
 <div class="piano-bottom-center">
     <Piano {currentNotes} />
 </div>
