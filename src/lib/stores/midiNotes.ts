@@ -25,6 +25,8 @@ const keyToNote: Record<string, string> = {
   i: "C5", '9': "C#5", o: "D5", '0': "D#5", p: "E5"
 }
 
+export const keyboardToNoteMap = keyToNote;
+
 // --- MIDI note adjustment logic ---
 // Helper: MIDI note name to MIDI number (C4 = 60)
 function noteNameToMidiNumber(note: string): number {
