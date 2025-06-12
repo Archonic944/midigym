@@ -1,6 +1,6 @@
 <script lang="ts">
+	import MidiSetupModal from '$lib/components/MidiSetupModal.svelte';
     import CardPicker from "$lib/components/CardPicker.svelte";
-    import MidiSetupModal from "$lib/components/MidiSetupModal.svelte";
     import type { CardOption } from "$lib/types/CardOption";
     import Piano from "$lib/components/Piano.svelte";
     import GameArea from "$lib/components/GameArea.svelte";
@@ -29,6 +29,9 @@
     let gameStartTime: number;
     let gameFinished = false;
     let finishedStats: { cpm: number; accuracy: number; correct: number; incorrect: number; durationSeconds: number | null; durationLength: string | null; chordTypes: string[]; allChordTypes: string[] } | null = null;
+
+    // Track selected MIDI keyboard
+    let selectedKeyboard: WebMidi.MIDIInput | null = null;
 
     // State machine for page: 'input', 'settings', 'game', 'stats'
     type PageState = 'input' | 'settings' | 'game' | 'stats';
@@ -69,7 +72,12 @@
             pageState = 'settings';
         } else if (card.title === "MIDI Keyboard") {
             setupMidiAndKeyboard("midi");
-            showMidiModal = true;
+            // Only show modal if no keyboard is already selected
+            if (!selectedKeyboard) {
+                showMidiModal = true;
+            } else {
+                showMidiModal = false;
+            }
             inputMode = "midi";
             pageState = 'settings';
         }
@@ -78,6 +86,7 @@
     function handleMidiModalClose() {
         showMidiModal = false;
         if (selectedCard && selectedCard.title === "MIDI Keyboard") {
+            // Only proceed if a MIDI device was selected (event.detail.selectedIdx is a number)
             setupComplete = true;
             inputMode = "midi";
             pageState = 'settings';
@@ -151,6 +160,28 @@
         startGame();
     }
 
+    function handleUseKeyboard() {
+        // Use the same index as in the CardPicker cards array (1 for Computer Keyboard)
+        onOptionPicked(CardPickerCards[1], 1);
+        showMidiModal = false;
+    }
+
+    // CardPicker cards array for reuse
+    const CardPickerCards: CardOption[] = [
+        {
+            title: "MIDI Keyboard",
+            description:
+                "Play by connecting a MIDI keyboard to your computer. WARNING: This feature is only guaranteed to work with Chrome!",
+            icon: "/svgs/piano.svg",
+        },
+        {
+            title: "Computer Keyboard",
+            description:
+                "Play using the keys on your computer keyboard. Can be a little more difficult.",
+            icon: "/svgs/keyboard.svg",
+        },
+    ];
+
     onDestroy(() => clearInterval(timerInterval));
 </script>
 
@@ -185,29 +216,18 @@
     <div class="banner-right"></div>
 </div>
 
+{#if pageState === 'input'}
 <h1>MidiGym</h1>
 <p>
     Your interactive platform for <strong>learning and practicing</strong> MIDI skills.
 </p>
+{/if}
 
 {#if pageState === 'input'}
     <div class="centered-picker">
         <CardPicker
             onPick={onOptionPicked}
-            cards={[
-                {
-                    title: "MIDI Keyboard",
-                    description:
-                        "Play by connecting a MIDI keyboard to your computer. WARNING: This feature is only guaranteed to work with Chrome!",
-                    icon: "/svgs/piano.svg",
-                },
-                {
-                    title: "Computer Keyboard",
-                    description:
-                        "Play using the keys on your computer keyboard. Can be a little more difficult.",
-                    icon: "/svgs/keyboard.svg",
-                },
-            ]}
+            cards={CardPickerCards}
         />
     </div>
 {:else if pageState === 'settings'}
@@ -279,7 +299,12 @@
 {/if}
 
 <!-- Always render the modal, controlled by showMidiModal -->
-<MidiSetupModal open={showMidiModal} onClose={handleMidiModalClose} />
+<MidiSetupModal
+    open={showMidiModal}
+    onClose={handleMidiModalClose}
+    bind:selectedKeyboard
+    on:useKeyboard={handleUseKeyboard}
+/>
 
 <div class="piano-bottom-center">
     <Piano {currentNotes}  />

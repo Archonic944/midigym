@@ -108,7 +108,6 @@ export function getMidiKeyboards(): Input[] {
   return WebMidi.inputs;
 }
 
-// Call this from a browser-only context (e.g. onMount in Svelte)
 export function setupMidiAndKeyboard(mode: 'midi' | 'keyboard') {
   if (mode === 'keyboard') {
     disableComputerKeyboard(); // Remove any previous listeners to avoid duplicates

@@ -75,6 +75,13 @@ h1 {
     0 0 40px rgba(95, 39, 205, 0.4);
 }
 
+.wide-button:disabled,
+.wide-button[disabled] {
+  opacity: 0.5;
+  pointer-events: none;
+  filter: grayscale(0.5);
+}
+
 .small-button {
   background-color: var(--header-color);
   color: black;
