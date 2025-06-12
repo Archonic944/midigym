@@ -20,7 +20,7 @@
   <div class="card-title">{title}</div>
   <div class="card-icon" aria-hidden="true">
     {#if isSvgFile}
-      <img src={icon.replace('%sveltekit.assets%', '')} alt={title + " icon"} class="icon-img" />
+      <img src={icon} alt={title + " icon"} class="icon-img" />
     {:else}
       {@html icon}
     {/if}

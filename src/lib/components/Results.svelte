@@ -9,6 +9,9 @@
   export let allChordTypes: string[] = [];
   export let onPlayAgain: () => void;
 
+  import { createEventDispatcher } from "svelte";
+  const dispatch = createEventDispatcher();
+
   // Chord type categories for consolidation
   const chordTypeGroups: Record<string, string[]> = {
     'Major & Minor': ['Major', 'Minor'],
@@ -61,6 +64,7 @@
       <div class="stat-row"><div class="stat-label">Chords</div><div class="stat-value">{durationLength}</div></div>
     {/if}
     <button class="play-again" on:click={onPlayAgain}>Play Again</button>
+    <button class="secondary-button" on:click={() => dispatch('back')}>Back</button>
   </div>
   <div class="settings-box">
     <h3>Settings</h3>
@@ -157,6 +161,25 @@
 }
 .play-again:hover {
   background: #27ae60;
+}
+.secondary-button {
+  margin-top: 1.1rem;
+  padding: 0.6rem 2rem;
+  font-size: 1.05rem;
+  border-radius: 0.7rem;
+  border: none;
+  background: #444;
+  color: #fff;
+  font-family: monospace;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.18s;
+  margin-left: 0.5rem;
+  display: block;
+}
+.secondary-button:hover {
+  background: #2196f3;
+  color: #fff;
 }
 .settings-box h3 {
   margin-top: 0;

@@ -1,0 +1,64 @@
+# Codebase Summary for MidiGym
+
+## General Directives
+
+Rely on existing frameworks and rules as much as possible. Do not create duplicates of something that already exists within the project.
+When changes are made, update this (copilot-instructions.md) document.
+Avoid malformed paths: ensure no project file paths or route URLs contain spaces or unencoded special characters.
+
+## Top-Level Files
+
+- **README.md**: Basic SvelteKit project setup and usage instructions.
+- **package.json**: Project metadata, scripts, and dependencies. Uses SvelteKit, Vite, TypeScript, Tonal (music theory), and WebMidi (MIDI input).
+- **svelte.config.js**: SvelteKit config, uses auto adapter and Vite preprocessor.
+- **vite.config.ts**: Vite config, loads SvelteKit plugin.
+- **tsconfig.json**: TypeScript config, extends SvelteKit defaults, strict mode enabled.
+
+## App Shell
+
+- **src/app.html**: Main HTML template for SvelteKit app.
+- **src/app.d.ts**: TypeScript global types for SvelteKit.
+- **src/lib/index.ts**: Placeholder for `$lib` alias imports.
+
+## Main Page
+
+- **src/routes/+page.svelte**: Main UI and state machine for the app. Handles input (keyboard/MIDI), game settings, game loop, and results. Imports all major components and manages transitions between input, settings, game, and stats screens.
+
+## Components (`src/lib/components/`)
+
+- **Card.svelte**: UI card with title, icon (SVG or emoji), and description. Emits click events.
+- **CardPicker.svelte**: Presents 1-4 Card options, handles selection logic.
+- **CheckboxPicker.svelte**: Lets user select chord types, grouped by category. Notifies parent on change.
+- **GameArea.svelte**: Core game logic. Listens to MIDI/computer keyboard notes, checks against target chords, tracks correct/incorrect answers, and emits progress/finished events.
+- **MidiSetupModal.svelte**: Modal for MIDI device setup and calibration (e.g., setting middle C). Handles MIDI device selection and note detection.
+- **Piano.svelte**: Renders a 24-key piano (C3–B4), highlights pressed notes from currentNotes store.
+- **Results.svelte**: Displays game results (CPM, accuracy, correct/incorrect, duration, chord types) and play-again button.
+- **RowPicker.svelte**: Horizontal picker for options (e.g., duration), highlights selected, emits onSelect.
+
+## Stores (`src/lib/stores/`)
+
+- **gameSettings.ts**: Svelte store for game settings (duration, chord types, etc.).
+- **midiNotes.ts**: Svelte stores for current notes, MIDI keyboards, and MIDI/computer keyboard input logic. Includes helpers for note conversion and event handling.
+
+## Types (`src/lib/types/`)
+
+- **CardOption.ts**: TypeScript interface for Card options (title, icon, description).
+
+## Utilities (`src/lib/util/`)
+
+- **flatToSharp.ts**: Converts flat note names (e.g., Db) to sharps (e.g., C#).
+- **generate_chords.ts**: Generates random chord objects based on game settings and chord type mappings using Tonal.
+
+## Utilities (`src/util/`)
+
+- **flatToSharp.ts**: (Empty file, likely unused or placeholder.)
+
+## Tests
+
+- **test_pitch_class.js / test_pitch_class.mjs**: Test scripts for pitch class and chord comparison logic using Tonal.
+
+## Static Assets
+
+- **static/app.css**: Main stylesheet. Contains rules for styling that copilot should follow. Any styling should be added to or derived from this file.
+- **static/svgs/**: SVG icons for keyboard and piano.
+- **static/favicon.png**: App favicon.

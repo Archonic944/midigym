@@ -116,6 +116,26 @@ h1 {
   color: var(--background-color);
 }
 
+.secondary-button {
+  margin-top: 1.1rem;
+  padding: 0.6rem 2rem;
+  font-size: 1.05rem;
+  border-radius: 0.7rem;
+  border: none;
+  background: #444;
+  color: #fff;
+  font-family: monospace;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.18s;
+  margin-left: 0.5rem;
+  display: block;
+}
+.secondary-button:hover {
+  background: #2196f3;
+  color: #fff;
+}
+
 /* Also ensure monospace is consistent across all button types */
 .wide-hollow-button,
 .small-button,

@@ -12,6 +12,7 @@
     import { gameSettings } from "$lib/stores/gameSettings";
     import { generateChords } from "$lib/util/generate_chords";
     import { onDestroy } from "svelte";
+    import { tick } from "svelte";
 
     let showMidiModal = false;
     let setupComplete = false;
@@ -55,15 +56,21 @@
         chordTypes: selectedChordTypes
     });
 
+    // Banner state
+    let inputMode: 'keyboard' | 'midi' | null = null;
+
+    // Set input mode when option picked
     function onOptionPicked(card: CardOption, idx: number) {
         selectedCard = card;
         if (card.title === "Computer Keyboard") {
             setupMidiAndKeyboard("keyboard");
             setupComplete = true;
+            inputMode = "keyboard";
             pageState = 'settings';
         } else if (card.title === "MIDI Keyboard") {
             setupMidiAndKeyboard("midi");
             showMidiModal = true;
+            inputMode = "midi";
             pageState = 'settings';
         }
     }
@@ -72,8 +79,19 @@
         showMidiModal = false;
         if (selectedCard && selectedCard.title === "MIDI Keyboard") {
             setupComplete = true;
+            inputMode = "midi";
             pageState = 'settings';
         }
+    }
+
+    function goToInputConfig() {
+        pageState = 'input';
+        showMidiModal = false;
+        inputMode = null;
+    }
+
+    function openMidiConfig() {
+        showMidiModal = true;
     }
 
     function startGame() {
@@ -136,6 +154,37 @@
     onDestroy(() => clearInterval(timerInterval));
 </script>
 
+<!-- Banner -->
+<div class="banner">
+    <div class="banner-left">
+        {#if inputMode === 'keyboard'}
+            <img
+                src="/svgs/keyboard.svg"
+                alt="Keyboard"
+                class="banner-icon"
+            />
+            <span class="banner-tooltip">using keyboard input</span>
+        {:else if inputMode === 'midi'}
+            <img
+                src="/svgs/piano.svg"
+                alt="MIDI Keyboard"
+                class="banner-icon"
+            />
+            <span class="banner-tooltip">using MIDI keyboard</span>
+        {/if}
+        {#if inputMode}
+            <button class="banner-btn" on:click={goToInputConfig}>Input Config</button>
+            {#if inputMode === 'midi'}
+                <button class="banner-btn less-emph" on:click={openMidiConfig}>Configure MIDI</button>
+            {/if}
+        {/if}
+    </div>
+    <div class="banner-center">
+        <span class="banner-title">midigym</span>
+    </div>
+    <div class="banner-right"></div>
+</div>
+
 <h1>MidiGym</h1>
 <p>
     Your interactive platform for <strong>learning and practicing</strong> MIDI skills.
@@ -150,17 +199,16 @@
                     title: "MIDI Keyboard",
                     description:
                         "Play by connecting a MIDI keyboard to your computer. WARNING: This feature is only guaranteed to work with Chrome!",
-                    icon: "%sveltekit.assets%/svgs/piano.svg",
+                    icon: "/svgs/piano.svg",
                 },
                 {
                     title: "Computer Keyboard",
                     description:
                         "Play using the keys on your computer keyboard. Can be a little more difficult.",
-                    icon: "%sveltekit.assets%/svgs/keyboard.svg",
+                    icon: "/svgs/keyboard.svg",
                 },
             ]}
         />
-        <MidiSetupModal open={showMidiModal} onClose={handleMidiModalClose} />
     </div>
 {:else if pageState === 'settings'}
     <div class="main-layout">
@@ -212,6 +260,7 @@
         chordTypes={finishedStats.chordTypes}
         allChordTypes={finishedStats.allChordTypes}
         onPlayAgain={playAgain}
+        on:back={() => { pageState = 'settings'; }}
     />
 {:else if pageState === 'game'}
     <div class="game-screen">
@@ -229,8 +278,11 @@
     </div>
 {/if}
 
+<!-- Always render the modal, controlled by showMidiModal -->
+<MidiSetupModal open={showMidiModal} onClose={handleMidiModalClose} />
+
 <div class="piano-bottom-center">
-    <Piano {currentNotes} />
+    <Piano {currentNotes}  />
 </div>
 
 <style>
@@ -352,4 +404,96 @@
         font-size: 1.1rem;
     }
 
+    .banner {
+        width: 100vw;
+        min-height: 38px;
+        background: var(--black, #111);
+        color: var(--text-color, #fff);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 1003;
+        font-size: 1.05rem;
+        border-bottom: 1.5px solid #222;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+        padding: 0.2rem 0;
+        letter-spacing: 0.04em;
+    }
+    .banner-left, .banner-center, .banner-right {
+        display: flex;
+        align-items: center;
+        height: 100%;
+    }
+    .banner-left {
+        position: absolute;
+        left: 1.5rem;
+        top: 0;
+        height: 100%;
+        gap: 0.7rem;
+    }
+    .banner-center {
+        flex: 1;
+        justify-content: center;
+    }
+    .banner-title {
+        font-family: monospace;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #fff;
+        letter-spacing: 0.12em;
+        text-transform: lowercase;
+        opacity: 0.93;
+    }
+    .banner-icon {
+        width: 1.5em;
+        height: 1.5em;
+        vertical-align: middle;
+        margin-right: 0.2em;
+        filter: brightness(0) invert(1); /* Make SVGs white */
+        cursor: pointer;
+        transition: filter 0.15s;
+        color: white;
+    }
+    .banner-icon:hover {
+        filter: brightness(0) invert(1) brightness(1.5);
+    }
+    .banner-btn {
+        margin-left: 0.5em;
+        padding: 0.18em 0.95em;
+        font-size: 0.97em;
+        border-radius: 0.5em;
+        border: none;
+        background: var(--header-color, #2196f3);
+        color: #fff;
+        font-family: monospace;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .banner-btn:hover {
+        background: #1976d2;
+    }
+    .banner-btn.less-emph {
+        background: #222;
+        color: #aaa;
+        border: 1px solid #444;
+        font-weight: 400;
+        margin-left: 0.4em;
+        font-size: 0.93em;
+        opacity: 0.85;
+    }
+    .banner-btn.less-emph:hover {
+        background: #333;
+        color: #fff;
+        border-color: #2196f3;
+    }
+    .banner-tooltip {
+        font-size: 0.92em;
+        color: #aaa;
+        margin-left: 0.2em;
+        opacity: 0.85;
+        pointer-events: none;
+        user-select: none;
+    }
 </style>
