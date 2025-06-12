@@ -2,9 +2,14 @@
   import { onMount } from 'svelte';
   import { midiKeyboards, refreshMidiKeyboards, rootNote } from '$lib/stores/midiNotes';
   import { get } from 'svelte/store';
+  import { createEventDispatcher } from 'svelte';
+
+  const dispatch = createEventDispatcher();
 
   export let open = false;
   export let onClose: () => void = () => {};
+
+  export let selectedKeyboard: WebMidi.MIDIInput | null = null;
 
   let selectedIdx: number = 0;
   let awaitingMiddleC = false;
@@ -20,7 +25,7 @@
     window.addEventListener('keydown', handleKeyDown);
     // Add MIDI note listener to selected keyboard
     if (selectedKeyboard && !midiListenerAdded) {
-      selectedKeyboard.addListener('noteon', midiNoteHandler);
+      selectedKeyboard.addEventListener('noteon', midiNoteHandler);
       midiListenerAdded = true;
     }
   }
@@ -31,7 +36,7 @@
     window.removeEventListener('keydown', handleKeyDown);
     // Remove MIDI note listener
     if (selectedKeyboard && midiListenerAdded) {
-      selectedKeyboard.removeListener('noteon', midiNoteHandler);
+      selectedKeyboard.removeEventListener('noteon', midiNoteHandler);
       midiListenerAdded = false;
     }
   }
@@ -59,7 +64,7 @@
     setTimeout(() => { detectedNote = null; }, 1200);
     // Remove listener after first note
     if (selectedKeyboard && midiListenerAdded) {
-      selectedKeyboard.removeListener('noteon',midiNoteHandler);
+      selectedKeyboard.removeEventListener('noteon',midiNoteHandler);
       midiListenerAdded = false;
     }
   }
@@ -67,7 +72,7 @@
   function handleSelectChange(e: Event) {
     // Remove MIDI listener from previous keyboard if needed
     if (selectedKeyboard && midiListenerAdded) {
-      selectedKeyboard.removeListener('noteon',midiNoteHandler);
+      selectedKeyboard.removeEventListener('noteon',midiNoteHandler);
       midiListenerAdded = false;
     }
     selectedIdx = +(e.target as HTMLSelectElement).value;
@@ -80,6 +85,25 @@
   function handleClose() {
     stopMiddleCCalibration();
     onClose();
+  }
+
+  function handleDeviceSelect(device: WebMidi.MIDIInput) {
+    selectedKeyboard = device;
+    // Remove MIDI listener from previous keyboard if needed
+    if (midiListenerAdded) {
+      selectedKeyboard.removeListener('noteon',midiNoteHandler);
+      midiListenerAdded = false;
+    }
+    // Add MIDI note listener to new keyboard
+    if (selectedKeyboard && !midiListenerAdded) {
+      selectedKeyboard.addListener('noteon', midiNoteHandler);
+      midiListenerAdded = true;
+    }
+  }
+
+  function handleUseKeyboard() {
+    dispatch('useKeyboard');
+    handleClose();
   }
 
   $: keyboards = $midiKeyboards;
@@ -107,13 +131,25 @@
       <div class="calibration-section">
         <label>Calibrate Middle C:</label>
         {#if !awaitingMiddleC}
-          <button class="wide-button" on:click={startMiddleCCalibration}>Press Middle C</button>
+          <button class="wide-button"
+            on:click={startMiddleCCalibration}
+            disabled={!selectedKeyboard}
+          >Calibrate</button>
         {:else}
-          <div class="calibrating">Waiting for input...<br/>{#if detectedNote}<span class="detected">{detectedNote}</span>{/if}</div>
+          <div class="calibrating">Press middle C...<br/>{#if detectedNote}<span class="detected">{detectedNote}</span>{/if}</div>
         {/if}
       </div>
       <div class="divider"></div>
-      <button class="wide-hollow-button" on:click={() => {alert("closed"); handleClose();}}>Done</button>
+      <button
+        class="wide-hollow-button"
+        on:click={() => {alert("closed"); handleClose();}}
+        disabled={!selectedKeyboard}
+      >Done</button>
+      <button
+        class="wide-hollow-button"
+        style="margin-top:0.5rem"
+        on:click={handleUseKeyboard}
+      >Use Computer Keyboard</button>
     </div>
   </div>
 {/if}
@@ -188,5 +224,9 @@ select#midi-select {
   font-size: 1.3rem;
   margin-top: 0.3rem;
   display: block;
+}
+.wide-hollow-button[disabled] {
+  opacity: 0.5;
+  pointer-events: none;
 }
 </style>

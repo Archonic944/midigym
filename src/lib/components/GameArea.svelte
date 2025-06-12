@@ -105,23 +105,25 @@ export function sortAndPruneNotes(notes: string[]): string[] {
 }
 </script>
 
-<div class="game-area" class:shake={$flashError}>
-<!-- Make sure Piano is bound correctly in the parent (e.g. +page.svelte):
-<Piano bind:this={pianoRef} {currentNotes} />
--->
-  {#each chords as chord, idx}
-    <span
-      class="chord
-             {idx === currentIndex ? 'target' : ''}
-             {$echoIdx === idx ? 'correct' : ''}
-             {idx === currentIndex && $flashError ? 'incorrect' : ''}"
-    >
-      {chord.name}
-      {#if idx === currentIndex}
-        <span class="cursor"></span>
-      {/if}
-    </span>
-  {/each}
+<div class="game-area-container">
+  <div class="game-area" class:shake={$flashError}>
+    {#each chords as chord, idx}
+      <span
+        class="chord
+               {idx === currentIndex ? 'target' : ''}
+               {$echoIdx === idx ? 'correct' : ''}
+               {idx === currentIndex && $flashError ? 'incorrect' : ''}
+               {idx < currentIndex ? 'before' : ''}
+               {idx > currentIndex ? 'after' : ''}"
+      >
+        {#if idx === currentIndex}
+          <span class="cursor"></span>
+        {/if}
+        {chord.name}
+      </span>
+    {/each}
+    <div class="fade-bottom"></div>
+  </div>
 </div>
 
 <div class="counters">
@@ -130,31 +132,64 @@ export function sortAndPruneNotes(notes: string[]): string[] {
 </div>
 
 <style>
+  .game-area-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100vw;
+    min-height: 5.5em;
+    position: relative;
+    margin-top: 2.5em;
+  }
   .game-area {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-    max-height: calc(1.2em * 3 + 0.5rem * 2);
-    max-width: 80vw;
-    margin: 0 auto;
+    max-width: 90vw;
+    min-width: 60vw;
     font-family: monospace;
-    font-size: 1.5rem;
+    font-size: 2rem;
     position: relative;
+    justify-content: center;
+    align-items: flex-start;
+    max-height: 4.5em; /* ~2 lines */
+    overflow: hidden;
+    background: transparent;
+  }
+  .fade-bottom {
+    pointer-events: none;
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 1.5em;
+    background: linear-gradient(to bottom, rgba(30,30,30,0) 0%, rgba(30,30,30,0.95) 100%);
+    z-index: 10;
   }
   .chord {
     position: relative;
-    padding: 0.2rem 0.5rem;
+    padding: 0.25em 0.7em;
     color: var(--text-color);
-    transition: transform 0.2s, color 0.2s;
+    transition: transform 0.2s, color 0.2s, opacity 0.2s;
+    border-radius: 0.7em;
+    font-weight: 500;
+    z-index: 1;
+    background: none;
+    display: inline-block;
+    margin-bottom: 0.2em;
   }
-  .cursor {
+  .chord .cursor {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 0.6em;
-    background: var(--header-color-clear);
-    border-radius: 4px;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #444a53;
+    border-radius: 0.7em;
+    z-index: -1;
+    box-shadow: 0 2px 10px 0 rgba(0,0,0,0.12);
+    opacity: 0.85;
+    transition: background 0.18s;
+  }
+  .chord.target {
+    color: #fff;
+    font-weight: bold;
+    z-index: 2;
   }
   .chord.correct {
     animation: echo 0.6s ease-out forwards;
@@ -163,6 +198,16 @@ export function sortAndPruneNotes(notes: string[]): string[] {
   .chord.incorrect {
     animation: flash-red 0.3s ease-out;
     color: #e74c3c;
+  }
+  .chord.before {
+    color: #888;
+    opacity: 0.45;
+    font-weight: 400;
+  }
+  .chord.after {
+    color: #bbb;
+    opacity: 0.7;
+    font-weight: 400;
   }
   .game-area.shake {
     animation: shake 0.3s ease-out;
@@ -186,5 +231,7 @@ export function sortAndPruneNotes(notes: string[]): string[] {
     margin-top: 0.5rem;
     font-family: monospace;
     color: var(--text-color);
+    justify-content: center;
+    font-size: 1.1rem;
   }
 </style>
