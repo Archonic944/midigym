@@ -68,7 +68,7 @@
           left: calc((100% / {whiteKeyIndices.length}) * ({afterWhite} + 1));
           border-color: {keyColors[idx] || 'white'};
           box-shadow: {keyColors[idx] ? `0 0 16px 2px ${keyColors[idx]}` : 'none'};
-          background: {keyColors[idx] ? keyColors[idx] : 'none'};
+          background: {keyColors[idx] ? keyColors[idx] : 'var(--background-color)'};
           transform: translateX(-50%);
         "
       ></div>
@@ -79,16 +79,32 @@
 <style>
 .piano {
   position: relative;
-  width: 560px;
-  height: 160px;
-  margin: 2rem auto;
+  width: min(560px, 94vw); /* Changed from fixed 560px to be responsive */
+  height: 140px; /* Reduced from 160px */
+  margin: 1.5rem auto; /* Reduced from 2rem */
   background: none;
   border-radius: 1.5rem;
   box-shadow: 0 6px 32px rgba(0,0,0,0.25);
-  border: 4px solid #fff;
+  border: 3px solid #fff; /* Reduced from 4px */
   overflow: hidden;
   user-select: none;
 }
+
+/* Add media queries for smaller screens */
+@media (max-width: 768px) {
+  .piano {
+    height: 120px;
+    margin: 1.2rem auto;
+  }
+}
+
+@media (max-height: 700px) {
+  .piano {
+    height: 110px;
+    margin: 1rem auto;
+  }
+}
+
 .white-keys {
   display: flex;
   height: 100%;
@@ -122,7 +138,7 @@
   position: absolute;
   width: calc(100% / 22);
   height: 100%;
-  background: none;
+  background: var(--background-color);
   border: 2.5px solid white;
   border-radius: 0 0 6px 6px;
   box-sizing: border-box;

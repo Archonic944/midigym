@@ -7,10 +7,10 @@
 :root {
   --header-color: #689fe8;
   --accent-color: #f9f570;
-  --header-color-clear: rgba(104, 159, 232, 0.611);
-  --accent-color-clear: #f9f470be;
   --text-color: white;
-  --background-color: rgb(30, 30, 30);  /* Darker background */
+  --background-color: rgb(30, 30, 30);
+  --header-color-clear: color-mix(in srgb, var(--header-color) 75%, var(--background-color) 25%);
+  --accent-color-clear: color-mix(in srgb, var(--accent-color) 75%, var(--background-color) 25%);
 }
 
 body {
@@ -172,4 +172,34 @@ textarea {
   padding: 8px 12px;
   border: 1px solid #444;
   caret-color: white;
+}
+
+.chord.target {
+  color: #fff;
+  font-weight: bold;
+  z-index: 2;
+  /* Even softer fresnel/glow effect */
+  box-shadow:
+    0 0 0 1px var(--accent-color-clear),
+    0 0 2px 0.5px var(--header-color),
+    0 0 4px 1px var(--accent-color),
+    0 0 6px 1.5px #fff2,
+    0 0 8px 2px var(--accent-color-clear);
+  background: linear-gradient(
+    120deg,
+    rgba(255,255,255,0.03) 0%,
+    rgba(249,245,112,0.06) 40%,
+    rgba(104,159,232,0.03) 100%
+  );
+  outline: 1px solid var(--accent-color);
+  outline-offset: 1px;
+  filter: drop-shadow(0 0 1.5px var(--accent-color));
+  position: relative;
+  transition: box-shadow 0.18s, outline 0.18s, background 0.18s;
+}
+
+/* Prevent glow from being clipped in the game area */
+.game-area {
+  /* ...existing code... */
+  overflow: visible;
 }
