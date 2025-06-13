@@ -7,8 +7,18 @@ export const currentNotes = writable<string[]>([]);
 // Store for available MIDI keyboards
 export const midiKeyboards = writable<Input[]>([]);
 
+// Store for user-defined MIDI root note (e.g., Middle C)
+export const rootNote = writable<string>('C4');
+
+// Store for the currently selected MIDI device
+export const selectedMidiDevice = writable<Input | null>(null);
+
 // Internal set to track active notes
 const activeNotes = new Set<string>();
+
+// Flag to track if calibration mode is active
+let isCalibrationMode = false;
+let calibrationCallback: ((note: string) => void) | null = null;
 
 // Utility: Safely clear all currently playing notes (from anywhere)
 export function clearCurrentNotes() {
@@ -63,6 +73,13 @@ function adjustNoteIdentifier(noteIdentifier: string): string {
 
 function handleNoteOn(e: NoteMessageEvent) {
   const adjNote = adjustNoteIdentifier(e.note.identifier);
+  
+  // If in calibration mode, pass the note to the callback and return
+  if (isCalibrationMode && calibrationCallback) {
+    calibrationCallback(e.note.identifier);
+    return;
+  }
+  
   activeNotes.add(adjNote);
   currentNotes.set(Array.from(activeNotes));
 }
@@ -76,6 +93,12 @@ function handleNoteOff(e: NoteMessageEvent) {
 function handleKeyDown(event: KeyboardEvent) {
   const note = keyToNote[event.key];
   if (note && !activeNotes.has(note)) {
+    // If in calibration mode, pass the note to the callback and return
+    if (isCalibrationMode && calibrationCallback) {
+      calibrationCallback(note);
+      return;
+    }
+    
     activeNotes.add(note);
     currentNotes.set(Array.from(activeNotes));
   }
@@ -103,28 +126,61 @@ function disableComputerKeyboard() {
   }
 }
 
+// Disconnect all existing MIDI inputs
+function disconnectAllMidiInputs() {
+  WebMidi.inputs.forEach((input: Input) => {
+    input.removeListener("noteon", handleNoteOn);
+    input.removeListener("noteoff", handleNoteOff);
+  });
+}
+
 // Get a list of all potential MIDI keyboards
 export function getMidiKeyboards(): Input[] {
   return WebMidi.inputs;
 }
 
+// Select a specific MIDI device
+export function selectMidiDevice(device: Input | null) {
+  // Remove listeners from all devices
+  disconnectAllMidiInputs();
+  
+  // Update the selected device store
+  selectedMidiDevice.set(device);
+  
+  // If a device is selected, add listeners to it
+  if (device) {
+    device.addListener("noteon", handleNoteOn);
+    device.addListener("noteoff", handleNoteOff);
+    disableComputerKeyboard(); // Switch to MIDI input
+  }
+}
+
 export function setupMidiAndKeyboard(mode: 'midi' | 'keyboard') {
   if (mode === 'keyboard') {
+    // Clear any existing MIDI setup
+    disconnectAllMidiInputs();
+    selectedMidiDevice.set(null);
+    
+    // Enable computer keyboard
     disableComputerKeyboard(); // Remove any previous listeners to avoid duplicates
     enableComputerKeyboard();
     return;
   }
+  
   WebMidi.enable()
     .then(() => {
       midiKeyboards.set(WebMidi.inputs);
       if (WebMidi.inputs.length === 0) {
         enableComputerKeyboard();
       } else {
-        WebMidi.inputs.forEach((input: Input) => {
-          input.addListener("noteon", handleNoteOn);
-          input.addListener("noteoff", handleNoteOff);
-        });
-        disableComputerKeyboard();
+        const currentSelectedDevice = get(selectedMidiDevice);
+        if (currentSelectedDevice) {
+          // If a device is already selected, use it
+          selectMidiDevice(currentSelectedDevice);
+        } else if (WebMidi.inputs.length > 0) {
+          // Otherwise select the first available device
+          selectMidiDevice(WebMidi.inputs[0]);
+        }
       }
     })
     .catch(err => {
@@ -132,10 +188,20 @@ export function setupMidiAndKeyboard(mode: 'midi' | 'keyboard') {
       enableComputerKeyboard();
     });
 }
+
+// Start calibration mode
+export function startCalibration(callback: (note: string) => void): void {
+  isCalibrationMode = true;
+  calibrationCallback = callback;
+}
+
+// End calibration mode
+export function endCalibration(): void {
+  isCalibrationMode = false;
+  calibrationCallback = null;
+}
+
 // Refresh the list of available MIDI keyboards
 export function refreshMidiKeyboards() {
   midiKeyboards.set(WebMidi.inputs);
 }
-
-// Store for user-defined MIDI root note (e.g., Middle C)
-export const rootNote = writable<string>('C4');

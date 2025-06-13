@@ -90,18 +90,22 @@
   font-weight: bold;
   color: var(--accent-color, #f9f570);
   letter-spacing: 0.04em;
+  background: linear-gradient(to bottom, var(--accent-color, #f9f570) 0%, white 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: brightness(1.1);
 }
 .stat-label {
   color: #aaa;
-  font-size: 0.9em; /* Reduced from 0.98em */
+  font-size: 0.9em;
   margin-right: 0.18em;
 }
 .stat-value {
   font-weight: bold;
-  margin-right: 0.6em; /* Reduced from 0.7em */
+  margin-right: 0.6em;
 }
 
-/* Add media query for even smaller screens */
 @media (max-width: 640px) {
   .live-stats-bar {
     font-size: 0.95rem;
