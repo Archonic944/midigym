@@ -89,18 +89,19 @@
 <style>
 .results-container {
   display: flex;
-  gap: 2.5rem;
+  gap: 2rem; /* Reduced from 2.5rem */
   justify-content: center;
   align-items: flex-start;
-  margin: 3rem auto 0 auto;
+  margin: 2rem auto 0 auto; /* Reduced from 3rem */
   max-width: 900px;
+  padding: 0 1rem; /* Added padding for smaller screens */
 }
 .stats-box, .settings-box {
   background: rgba(255,255,255,0.07);
   border-radius: 1.2rem;
   box-shadow: 0 2px 16px rgba(0,0,0,0.13);
-  padding: 2.2rem 2.5rem 2rem 2.5rem;
-  min-width: 270px;
+  padding: 2rem 2rem 1.8rem 2rem; /* Reduced from 2.2rem 2.5rem 2rem 2.5rem */
+  min-width: 250px; /* Reduced from 270px */
   font-family: monospace;
   color: var(--text-color);
 }
@@ -112,22 +113,41 @@
 }
 .settings-box {
   flex: 1;
-  margin-left: 1.5rem;
+  margin-left: 1.2rem; /* Reduced from 1.5rem */
 }
 .cpm-main {
-  font-size: 2.7rem;
+  font-size: 2.5rem; /* Reduced from 2.7rem */
   font-weight: bold;
   color: #2ecc71;
-  margin: 1.2rem 0 0.7rem 0;
+  margin: 1rem 0 0.6rem 0; /* Reduced from 1.2rem 0 0.7rem 0 */
   display: flex;
   align-items: baseline;
-  gap: 0.7rem;
+  gap: 0.6rem; /* Reduced from 0.7rem */
 }
 .cpm-main span {
-  font-size: 1.1rem;
+  font-size: 1rem; /* Reduced from 1.1rem */
   color: #aaa;
   font-weight: 400;
 }
+
+/* Add responsive design for smaller screens */
+@media (max-width: 768px) {
+  .results-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  
+  .settings-box {
+    margin-left: 0;
+  }
+  
+  .stats-box, .settings-box {
+    min-width: 220px;
+    padding: 1.7rem 1.7rem 1.5rem 1.7rem;
+  }
+}
+
 .accuracy {
   font-size: 1.3rem;
   margin-bottom: 1.2rem;

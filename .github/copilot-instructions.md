@@ -3,8 +3,16 @@
 ## General Directives
 
 Rely on existing frameworks and rules as much as possible. Do not create duplicates of something that already exists within the project.
-When changes are made, update this (copilot-instructions.md) document.
-Avoid malformed paths: ensure no project file paths or route URLs contain spaces or unencoded special characters.
+
+IMPORTANT: When MAJOR CHANGES TO EXISTING FILES are made or NEW FILES ARE CREATED, update the corresponding file description in .github/copilot-instructions.md or add a new file description in the correct category.
+
+## Web Searching
+
+When working through a difficult problem, it is HIGHLY recommended to pull information from the internet. To do this, fetch from DuckDuckGo with the !ducky bang.
+An example: https://duckduckgo.com/?q=!ducky+svelte+reactivity
+
+This will take you DIRECTLY to the first article on svelte reactivity. Follow the exact format from the example, including the !ducky and using + for space.
+Do not use %2_ for special characters.
 
 ## Top-Level Files
 
@@ -34,6 +42,7 @@ Avoid malformed paths: ensure no project file paths or route URLs contain spaces
 - **Piano.svelte**: Renders a 24-key piano (C3–B4), highlights pressed notes from currentNotes store.
 - **Results.svelte**: Displays game results (CPM, accuracy, correct/incorrect, duration, chord types) and play-again button.
 - **RowPicker.svelte**: Horizontal picker for options (e.g., duration), highlights selected, emits onSelect.
+- **LiveStats.svelte**: Displays live statistics above the game area during gameplay. Shows CPM, accuracy, streak, time remaining/elapsed, and chords played. Updates in real-time as the user plays.
 
 ## Stores (`src/lib/stores/`)
 

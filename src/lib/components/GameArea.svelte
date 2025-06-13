@@ -1,14 +1,12 @@
 <script lang="ts">
-  //TODO implement a function that, given a set of notes, determines whether those notes *could* be the target chord eventually
   import { clearCurrentNotes, currentNotes } from "$lib/stores/midiNotes";
-  import { onDestroy, createEventDispatcher } from "svelte";
+  import { onDestroy, createEventDispatcher, onMount, tick } from "svelte";
   import { writable } from "svelte/store";
 
   import { Chord, Note } from "tonal";
   import { replaceFlatsWithSharps } from "../util/flatToSharp";
-// Reference to the Piano component instance
-let pianoRef: any = null;
 
+  let pianoRef: any = null;
   const dispatch = createEventDispatcher();
 
   export let chords: Array<{ name: string; notes: string[] }> = [];
@@ -18,9 +16,11 @@ let pianoRef: any = null;
   let incorrectCount = 0;
 
   // animation triggers
-  const echoIdx = writable<number|null>(null);
+  const echoIdx = writable<number | null>(null);
   const flashError = writable(false);
 
+  let gameAreaRef: HTMLElement;
+  let hasOverflow = false;
 
   // Returns MIDI pitch class (0-11) or throws if note is invalid
   function midiPitchClass(note: string): number {
@@ -39,32 +39,53 @@ let pianoRef: any = null;
     return true;
   }
 
+  function updateOverflow() {
+    if (gameAreaRef) {
+      hasOverflow = gameAreaRef.scrollHeight > gameAreaRef.clientHeight;
+    }
+  }
+
+  function scrollTargetToTop(idx: number = currentIndex) {
+    if (!gameAreaRef) return;
+
+    const el = gameAreaRef.querySelectorAll<HTMLElement>('.chord')[idx];
+    if (!el) return;
+
+    // If .game-area has padding-top remove it here, otherwise this line can just be: const y = el.offsetTop;
+    const paddingTop = parseFloat(getComputedStyle(gameAreaRef).paddingTop) || 0;
+    const y = el.offsetTop - paddingTop;
+
+    gameAreaRef.scrollTo({ top: y, behavior: 'smooth' });
+  }
+
   // listen for note changes
-  const unsub = currentNotes.subscribe(notes => {
+  const unsub = currentNotes.subscribe(async notes => {
     const target = chords[currentIndex];
-    if (!target){ 
-      console.warn("No target chord found at index " + currentIndex); 
+    if (!target) {
+      console.warn("No target chord found at index " + currentIndex);
       return;
     }
 
-    // Use Chord.detect to identify the played chord
     if (notes.length === 0) return;
+
+    // Prune/sort notes
     let prunedNotes = sortAndPruneNotes(notes);
+    // Use Chord.detect to identify the played chord(s)
     const detected = Chord.detect(notes);
-    console.log("DEBUG: notes played:", notes);
-    console.log("DEBUG: detected chord(s):", detected);
-    console.log("DEBUG: target chord:", target?.name, target?.notes);
+
     let targetNotes = replaceFlatsWithSharps([...target.notes]);
-    
-    // Does the pruned notes pattern exist somewhere within the target chord?
+
+    // Check if pruned pattern exists within target chord string representation
     const wrongNote = !targetNotes.join("").includes(prunedNotes.join(""));
     if (targetNotes.length === prunedNotes.length) {
-      if(wrongNote){
+      console.log("Target notes: " + targetNotes);
+      console.log("Player notes: " + prunedNotes);
+      if (wrongNote) {
         incorrectCount++;
         flashError.set(true);
         setTimeout(() => flashError.set(false), 300);
         dispatch('incorrect');
-      }else{
+      } else {
         correctCount++;
         setTimeout(() => {
           clearCurrentNotes();
@@ -72,8 +93,26 @@ let pianoRef: any = null;
         dispatch('progress', { correctCount });
         echoIdx.set(currentIndex);
         setTimeout(() => echoIdx.set(null), 600);
+
+        // Advance to next chord
         currentIndex++;
-        if (currentIndex >= chords.length) {
+        // After DOM updates, scroll the new target into view
+        await tick();
+        if (currentIndex < chords.length) {
+          scrollTargetToTop();
+          {
+  const el = gameAreaRef.querySelectorAll<HTMLElement>('.chord')[currentIndex];
+  console.log({
+    idx: currentIndex,
+    offsetTop: el?.offsetTop,
+    scrollTop: gameAreaRef.scrollTop,
+    clientHeight: gameAreaRef.clientHeight,
+    scrollHeight: gameAreaRef.scrollHeight
+  });
+}
+          updateOverflow();
+        } else {
+          // No more chords
           dispatch('finished', {});
         }
       }
@@ -81,32 +120,53 @@ let pianoRef: any = null;
   });
   onDestroy(unsub);
 
+  onMount(() => {
+    // Reset scroll when test starts
+    if (gameAreaRef) {
+      gameAreaRef.scrollTo({ top: 0 });
+      updateOverflow();
+    }
+    const resizeObs = new ResizeObserver(() => {
+      updateOverflow();
+      // Optionally, re-scroll the current target into view on width change:
+      if (gameAreaRef && currentIndex < chords.length) {
+        const chordElements = gameAreaRef.querySelectorAll<HTMLElement>('.chord');
+        const currentEl = chordElements[currentIndex];
+        if (currentEl) {
+          // Use block: 'nearest' so it won't jump unnecessarily if already visible
+          currentEl.scrollIntoView({ block: 'nearest', inline: 'center' });
+        }
+      }
+    });
+    if (gameAreaRef) resizeObs.observe(gameAreaRef);
+    window.addEventListener('resize', updateOverflow);
+    return () => {
+      resizeObs.disconnect();
+      window.removeEventListener('resize', updateOverflow);
+    };
+  });
+
   /**
- * Sorts an array of note strings by octave and note order, then returns the sorted notes without octave numbers.
- * @param notes Array of note strings (e.g., "C4", "D#5", "A3")
- * @returns Sorted array of note names without octave numbers (e.g., ["C", "D#", "A"])
- */
-export function sortAndPruneNotes(notes: string[]): string[] {
-  // Define the order of notes within an octave
-  const noteOrder = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-
-  // Helper to extract note and octave
-  function parseNote(note: string) {
-    const match = note.match(/^([A-G]#?)(\d+)$/);
-    if (!match) throw new Error(`Invalid note format: ${note}`);
-    return { note: match[1], octave: parseInt(match[2], 10) };
+   * Sorts an array of note strings by octave and note order, then returns the sorted notes without octave numbers.
+   * @param notes Array of note strings (e.g., "C4", "D#5", "A3")
+   * @returns Sorted array of note names without octave numbers (e.g., ["C", "D#", "A"])
+   */
+  export function sortAndPruneNotes(notes: string[]): string[] {
+    const noteOrder = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+    function parseNote(note: string) {
+      const match = note.match(/^([A-G]#?)(\d+)$/);
+      if (!match) throw new Error(`Invalid note format: ${note}`);
+      return { note: match[1], octave: parseInt(match[2], 10) };
+    }
+    return [...notes]
+      .map(parseNote)
+      .sort((a, b) => a.octave - b.octave || noteOrder.indexOf(a.note) - noteOrder.indexOf(b.note))
+      .map(n => n.note);
   }
-
-  // Clone and sort
-  return [...notes]
-    .map(parseNote)
-    .sort((a, b) => a.octave - b.octave || noteOrder.indexOf(a.note) - noteOrder.indexOf(b.note))
-    .map(n => n.note);
-}
 </script>
 
 <div class="game-area-container">
-  <div class="game-area" class:shake={$flashError}>
+  <div class="game-area" bind:this={gameAreaRef}>
     {#each chords as chord, idx}
       <span
         class="chord
@@ -117,12 +177,14 @@ export function sortAndPruneNotes(notes: string[]): string[] {
                {idx > currentIndex ? 'after' : ''}"
       >
         {#if idx === currentIndex}
-          <span class="cursor"></span>
+          <span class="cursor{ $flashError ? ' shake' : '' }"></span>
         {/if}
         {chord.name}
       </span>
     {/each}
-    <div class="fade-bottom"></div>
+    {#if hasOverflow}
+      <div class="fade-bottom"></div>
+    {/if}
   </div>
 </div>
 
@@ -137,36 +199,55 @@ export function sortAndPruneNotes(notes: string[]): string[] {
     justify-content: center;
     align-items: flex-start;
     width: 100vw;
-    min-height: 5.5em;
+    min-height: 4.8em; /* Reduced from 5.5em */
     position: relative;
-    margin-top: 2.5em;
+    margin-top: 2em; /* Reduced from 2.5em */
+    margin-bottom: 2em; /* Reduced from 2.5em */
   }
   .game-area {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
-    max-width: 90vw;
-    min-width: 60vw;
+    gap: 0.65rem; /* Reduced from 0.75rem */
+    max-width: 95vw; /* Increased from 92vw to use more screen width */
+    min-width: 60vw; /* Reduced from 62vw */
     font-family: monospace;
-    font-size: 2rem;
+    font-size: 1.8rem; /* Reduced from 2rem */
     position: relative;
     justify-content: center;
     align-items: flex-start;
-    max-height: 4.5em; /* ~2 lines */
-    overflow: hidden;
+    height: 5.5em; /* Reduced from 6em */
+    overflow-y: auto;
     background: transparent;
+    padding: 0.5em 1em;
   }
+  
+  /* Add media query for smaller screens */
+  @media (max-width: 768px) {
+    .game-area {
+      font-size: 1.6rem;
+      gap: 0.55rem;
+      height: 5em;
+      min-width: 90vw;
+    }
+    
+    .game-area-container {
+      min-height: 4.2em;
+      margin-top: 1.6em;
+      margin-bottom: 1.6em;
+    }
+  }
+  
   .fade-bottom {
     pointer-events: none;
     position: absolute;
     left: 0; right: 0; bottom: 0;
-    height: 1.5em;
+    height: 3.5em;
     background: linear-gradient(to bottom, rgba(30,30,30,0) 0%, rgba(30,30,30,0.95) 100%);
     z-index: 10;
   }
   .chord {
     position: relative;
-    padding: 0.25em 0.7em;
+    padding: 0.25em 0.6em; /* Reduced right padding from 0.7em */
     color: var(--text-color);
     transition: transform 0.2s, color 0.2s, opacity 0.2s;
     border-radius: 0.7em;
@@ -209,9 +290,6 @@ export function sortAndPruneNotes(notes: string[]): string[] {
     opacity: 0.7;
     font-weight: 400;
   }
-  .game-area.shake {
-    animation: shake 0.3s ease-out;
-  }
   @keyframes echo {
     from { opacity: 1; transform: scale(1); }
     to   { opacity: 0; transform: scale(1.5); }
@@ -222,8 +300,18 @@ export function sortAndPruneNotes(notes: string[]): string[] {
   }
   @keyframes shake {
     0%,100% { transform: translateX(0); }
-    25%     { transform: translateX(-4px); }
-    75%     { transform: translateX(4px); }
+    10%     { transform: translateX(-6px); }
+    20%     { transform: translateX(6px); }
+    30%     { transform: translateX(-8px); }
+    40%     { transform: translateX(8px); }
+    50%     { transform: translateX(-5px); }
+    60%     { transform: translateX(5px); }
+    70%     { transform: translateX(-3px); }
+    80%     { transform: translateX(3px); }
+    90%     { transform: translateX(-1px); }
+  }
+  .cursor.shake {
+    animation: shake 0.45s cubic-bezier(.36,.07,.19,.97) both;
   }
   .counters {
     display: flex;

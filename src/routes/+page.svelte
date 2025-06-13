@@ -1,17 +1,18 @@
 <script lang="ts">
-	import MidiSetupModal from '$lib/components/MidiSetupModal.svelte';
+    import MidiSetupModal from '$lib/components/MidiSetupModal.svelte';
     import CardPicker from "$lib/components/CardPicker.svelte";
     import type { CardOption } from "$lib/types/CardOption";
     import Piano from "$lib/components/Piano.svelte";
     import GameArea from "$lib/components/GameArea.svelte";
     import Results from "$lib/components/Results.svelte";
+    import LiveStats from '$lib/components/LiveStats.svelte';
 
     import { currentNotes, setupMidiAndKeyboard } from "$lib/stores/midiNotes";
     import RowPicker from "$lib/components/RowPicker.svelte";
     import CheckboxPicker from "$lib/components/CheckboxPicker.svelte";
     import { gameSettings } from "$lib/stores/gameSettings";
     import { generateChords } from "$lib/util/generate_chords";
-    import { onDestroy } from "svelte";
+    import { onDestroy, onMount } from "svelte";
     import { tick } from "svelte";
 
     let showMidiModal = false;
@@ -26,11 +27,18 @@
     let incorrectCountPage = 0;
     let chordsLeftTotal = 0;
     let timerInterval: ReturnType<typeof setInterval>;
+    let elapsedTimeInterval: ReturnType<typeof setInterval>; // Add interval for elapsed time
     let gameStartTime: number;
+    let currentElapsedTime: number = 0; // Track current elapsed time
     let gameFinished = false;
     let finishedStats: { cpm: number; accuracy: number; correct: number; incorrect: number; durationSeconds: number | null; durationLength: string | null; chordTypes: string[]; allChordTypes: string[] } | null = null;
-
-    // Track selected MIDI keyboard
+    
+    // Track streak and live stats
+    let streak = 0;
+    let currentCpm = 0;
+    let currentAccuracy = 100;
+    
+    // Selected MIDI keyboard
     let selectedKeyboard: WebMidi.MIDIInput | null = null;
 
     // State machine for page: 'input', 'settings', 'game', 'stats'
@@ -118,25 +126,61 @@
         chordsList = generateChords($gameSettings, count);
         incorrectCountPage = 0;
         correctCountPage = 0;
+        streak = 0;
+        currentCpm = 0;
+        currentAccuracy = 100;
+        currentElapsedTime = 0;
         gameStartTime = Date.now();
+        
+        // Clear any existing intervals
+        if (timerInterval) clearInterval(timerInterval);
+        if (elapsedTimeInterval) clearInterval(elapsedTimeInterval);
+        
+        // Set up timer for countdown mode
         if (durationSeconds) {
             timerInterval = setInterval(() => {
                 timer--;
+                // Update CPM in real-time
+                updateLiveStats();
                 if (timer <= 0) clearInterval(timerInterval);
             }, 1000);
         }
+        
+        // Always set up the elapsed time interval
+        elapsedTimeInterval = setInterval(() => {
+            currentElapsedTime = Math.floor((Date.now() - gameStartTime) / 1000);
+            // No need to call updateLiveStats() here as it's handled independently
+        }, 1000);
+        
         pageState = 'game';
+    }
+
+    // Function to update real-time statistics
+    function updateLiveStats() {
+        const elapsedMs = Date.now() - gameStartTime;
+        const elapsedMin = elapsedMs / 60000;
+        currentCpm = elapsedMin > 0 ? correctCountPage / elapsedMin : correctCountPage;
+        const totalChords = correctCountPage + incorrectCountPage;
+        currentAccuracy = totalChords > 0 ? (correctCountPage / totalChords) * 100 : 100;
     }
 
     function handleGameProgress(e) {
         correctCountPage = e.detail.correctCount;
+        streak++; // Increment streak on correct answer
+        updateLiveStats();
     }
 
     function handleGameIncorrect() {
         incorrectCountPage++;
+        streak = streak > 0 ? -1 : streak - 1; // Reset streak on incorrect and start counting negative
+        updateLiveStats();
     }
 
     function handleGameFinished() {
+        // Clear intervals
+        if (timerInterval) clearInterval(timerInterval);
+        if (elapsedTimeInterval) clearInterval(elapsedTimeInterval);
+        
         // Calculate stats
         const totalChords = correctCountPage + incorrectCountPage;
         const elapsedMs = Date.now() - gameStartTime;
@@ -182,7 +226,10 @@
         },
     ];
 
-    onDestroy(() => clearInterval(timerInterval));
+    onDestroy(() => {
+        clearInterval(timerInterval);
+        clearInterval(elapsedTimeInterval); // Clear elapsed time interval on destroy
+    });
 </script>
 
 <!-- Banner -->
@@ -284,11 +331,15 @@
     />
 {:else if pageState === 'game'}
     <div class="game-screen">
-        {#if $gameSettings.durationSeconds}
-            <div class="timer">Time Left: {timer}s</div>
-        {:else}
-            <div class="timer">Chords Left: {chordsLeftTotal - correctCountPage}</div>
-        {/if}
+        <LiveStats
+            timeLeft={$gameSettings.durationSeconds ? timer : null}
+            chordProgress={!$gameSettings.durationSeconds ? `${chordsLeftTotal - correctCountPage} left` : ''}
+            timeElapsed={currentElapsedTime}
+            chordsPlayed={correctCountPage + incorrectCountPage}
+            cpm={currentCpm}
+            accuracy={currentAccuracy}
+            streak={streak}
+        />
         <GameArea
             chords={chordsList}
             on:progress={handleGameProgress}
@@ -416,18 +467,7 @@
         width: 100%;
     }
 
-    .timer {
-        text-align: center;
-        font-family: monospace;
-        color: var(--accent-color);
-        margin-bottom: 0.5rem;
-        font-size: 1.2rem;
-    }
-
-    .notes-list {
-        margin-top: 1.2rem;
-        font-size: 1.1rem;
-    }
+    /* .timer and .notes-list selectors removed as they are no longer used */
 
     .banner {
         width: 100vw;
@@ -520,5 +560,14 @@
         opacity: 0.85;
         pointer-events: none;
         user-select: none;
+    }
+
+    .game-screen {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        min-height: 100vh;
+        width: 100vw;
+        /* Ensure live stats and game area stack vertically */
     }
 </style>
