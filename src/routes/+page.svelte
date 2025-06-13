@@ -7,7 +7,11 @@
     import Results from "$lib/components/Results.svelte";
     import LiveStats from '$lib/components/LiveStats.svelte';
 
-    import { currentNotes, setupMidiAndKeyboard } from "$lib/stores/midiNotes";
+    import { 
+        currentNotes, 
+        setupMidiAndKeyboard, 
+        selectedMidiDevice 
+    } from "$lib/stores/midiNotes";
     import RowPicker from "$lib/components/RowPicker.svelte";
     import CheckboxPicker from "$lib/components/CheckboxPicker.svelte";
     import { gameSettings } from "$lib/stores/gameSettings";
@@ -38,8 +42,8 @@
     let currentCpm = 0;
     let currentAccuracy = 100;
     
-    // Selected MIDI keyboard
-    let selectedKeyboard: WebMidi.MIDIInput | null = null;
+    // Selected MIDI keyboard from store
+    $: selectedKeyboard = $selectedMidiDevice;
 
     // State machine for page: 'input', 'settings', 'game', 'stats'
     type PageState = 'input' | 'settings' | 'game' | 'stats';
@@ -80,24 +84,22 @@
             pageState = 'settings';
         } else if (card.title === "MIDI Keyboard") {
             setupMidiAndKeyboard("midi");
-            // Only show modal if no keyboard is already selected
-            if (!selectedKeyboard) {
-                showMidiModal = true;
-            } else {
-                showMidiModal = false;
-            }
+            // Show MIDI modal to let user select or configure device
+            showMidiModal = true;
             inputMode = "midi";
-            pageState = 'settings';
+            // We'll set pageState to 'settings' after modal is closed and device selected
         }
     }
 
     function handleMidiModalClose() {
         showMidiModal = false;
         if (selectedCard && selectedCard.title === "MIDI Keyboard") {
-            // Only proceed if a MIDI device was selected (event.detail.selectedIdx is a number)
-            setupComplete = true;
-            inputMode = "midi";
-            pageState = 'settings';
+            // Check if a MIDI device is selected via the store
+            if ($selectedMidiDevice) {
+                setupComplete = true;
+                inputMode = "midi";
+                pageState = 'settings';
+            }
         }
     }
 
@@ -142,7 +144,11 @@
                 timer--;
                 // Update CPM in real-time
                 updateLiveStats();
-                if (timer <= 0) clearInterval(timerInterval);
+                if (timer <= 0) {
+                    clearInterval(timerInterval);
+                    // Trigger game finished when time runs out
+                    handleGameFinished();
+                }
             }, 1000);
         }
         

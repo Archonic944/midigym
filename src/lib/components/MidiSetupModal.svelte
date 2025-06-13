@@ -1,6 +1,14 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { midiKeyboards, refreshMidiKeyboards, rootNote } from '$lib/stores/midiNotes';
+  import { 
+    midiKeyboards, 
+    refreshMidiKeyboards, 
+    rootNote, 
+    selectedMidiDevice, 
+    selectMidiDevice,
+    startCalibration,
+    endCalibration
+  } from '$lib/stores/midiNotes';
   import { get } from 'svelte/store';
   import { createEventDispatcher } from 'svelte';
 
@@ -9,73 +17,42 @@
   export let open = false;
   export let onClose: () => void = () => {};
 
+  // Bind to the central store
   export let selectedKeyboard: WebMidi.MIDIInput | null = null;
 
   let selectedIdx: number = 0;
   let awaitingMiddleC = false;
   let detectedNote: string | null = null;
-  let unsubscribe: (() => void) | null = null;
-  let midiListenerAdded = false;
 
   // Listen for note input when calibrating
   function startMiddleCCalibration() {
     awaitingMiddleC = true;
     detectedNote = null;
-    unsubscribe = rootNote.subscribe(() => {}); // dummy to keep store hot
-    window.addEventListener('keydown', handleKeyDown);
-    // Add MIDI note listener to selected keyboard
-    if (selectedKeyboard && !midiListenerAdded) {
-      selectedKeyboard.addEventListener('noteon', midiNoteHandler);
-      midiListenerAdded = true;
-    }
+
+    // Use the centralized calibration function
+    startCalibration((noteIdentifier: string) => {
+      if (!awaitingMiddleC) return;
+      
+      detectedNote = noteIdentifier;
+      if (!detectedNote) return;
+      
+      rootNote.set(detectedNote);
+      awaitingMiddleC = false;
+      setTimeout(() => { detectedNote = null; }, 1200);
+      
+      // End calibration mode
+      endCalibration();
+    });
   }
 
   function stopMiddleCCalibration() {
     awaitingMiddleC = false;
-    if (unsubscribe) unsubscribe();
-    window.removeEventListener('keydown', handleKeyDown);
-    // Remove MIDI note listener
-    if (selectedKeyboard && midiListenerAdded) {
-      selectedKeyboard.removeEventListener('noteon', midiNoteHandler);
-      midiListenerAdded = false;
-    }
-  }
-
-  function handleKeyDown(e: KeyboardEvent) {
-    // Only allow one note to be set
-    if (!awaitingMiddleC) return;
-    // Accept any key as a calibration (for MIDI, this would be a MIDI event)
-    // For demo, use the key name as the note
-    detectedNote = e.key.toUpperCase();
-    rootNote.set(detectedNote);
-    awaitingMiddleC = false;
-    setTimeout(() => { detectedNote = null; }, 1200);
-    window.removeEventListener('keydown', handleKeyDown);
-  }
-
-  // MIDI note handler for calibration
-  function midiNoteHandler(e: any) {
-    if (!awaitingMiddleC) return;
-    // e.note.identifier is the note name, e.g., "C4"
-    detectedNote = e.note.identifier;
-    if(!detectedNote) return;
-    rootNote.set(detectedNote);
-    awaitingMiddleC = false;
-    setTimeout(() => { detectedNote = null; }, 1200);
-    // Remove listener after first note
-    if (selectedKeyboard && midiListenerAdded) {
-      selectedKeyboard.removeEventListener('noteon',midiNoteHandler);
-      midiListenerAdded = false;
-    }
+    endCalibration();
   }
 
   function handleSelectChange(e: Event) {
-    // Remove MIDI listener from previous keyboard if needed
-    if (selectedKeyboard && midiListenerAdded) {
-      selectedKeyboard.removeEventListener('noteon',midiNoteHandler);
-      midiListenerAdded = false;
-    }
     selectedIdx = +(e.target as HTMLSelectElement).value;
+    selectMidiDevice(keyboards[selectedIdx]);
   }
 
   function handleRefresh() {
@@ -88,17 +65,7 @@
   }
 
   function handleDeviceSelect(device: WebMidi.MIDIInput) {
-    selectedKeyboard = device;
-    // Remove MIDI listener from previous keyboard if needed
-    if (midiListenerAdded) {
-      selectedKeyboard.removeListener('noteon',midiNoteHandler);
-      midiListenerAdded = false;
-    }
-    // Add MIDI note listener to new keyboard
-    if (selectedKeyboard && !midiListenerAdded) {
-      selectedKeyboard.addListener('noteon', midiNoteHandler);
-      midiListenerAdded = true;
-    }
+    selectMidiDevice(device);
   }
 
   function handleUseKeyboard() {
@@ -107,7 +74,21 @@
   }
 
   $: keyboards = $midiKeyboards;
-  $: selectedKeyboard = keyboards[selectedIdx];
+  $: {
+    // When selectedKeyboard changes via props, update the store
+    if (selectedKeyboard && selectedKeyboard !== get(selectedMidiDevice)) {
+      selectMidiDevice(selectedKeyboard);
+    }
+    // When store changes, update the local variable
+    selectedKeyboard = $selectedMidiDevice;
+  }
+  $: {
+    // Find index of selected keyboard
+    const deviceIndex = keyboards.findIndex(kb => kb === selectedKeyboard);
+    if (deviceIndex >= 0) {
+      selectedIdx = deviceIndex;
+    }
+  }
 
   onMount(() => {
     refreshMidiKeyboards();
@@ -142,7 +123,7 @@
       <div class="divider"></div>
       <button
         class="wide-hollow-button"
-        on:click={() => {alert("closed"); handleClose();}}
+        on:click={handleClose}
         disabled={!selectedKeyboard}
       >Done</button>
       <button
