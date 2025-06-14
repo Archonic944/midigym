@@ -49,6 +49,7 @@ export function generateChords(settings: GameSettings, count: number): Array<{ n
         
         const chordName = `${randomRoot}${chordSymbol}`;
         const chord = Chord.get(chordName);
+        console.log(chord);
         
         result.push({
             name: chord.symbol || chordName,

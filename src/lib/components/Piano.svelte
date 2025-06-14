@@ -4,7 +4,7 @@
   import type { Readable } from 'svelte/store';
   export let currentNotes: Readable<string[]>;
   export let showTooltips: boolean = false;
-  export let learningNotes: string[] = []; // Add this to highlight keys to learn
+  export let learningNotes: string[] = []; // Highlights a key
 
   console.log("aaaa");
   // keyColors: 24 items, in keyboard order: W B W B W W B W B W B W W B W B W W B W B W B W
@@ -29,6 +29,10 @@
       let afterWhite = whiteCount - 1;
       blackKeyIndices.push({ idx: i, afterWhite });
     }
+  }
+
+  $: {
+    console.log(learningNotes + " are learning notes");
   }
 
   console.log("aaa")
@@ -183,14 +187,16 @@
   justify-items: center;
 }
 
-/* Learning key animation */
-.learning-key {
-  position: relative;
+.white-key.learning-key,
+.black-key.learning-key {
   z-index: 3;
   overflow: hidden;
+  animation: pulse-glow 1s infinite alternate;
+}
+.white-key.learning-key {
+  position: relative;
 }
 
-/* Create a simple pulsing outline and glow */
 .learning-outline {
   position: absolute;
   top: 0;
@@ -202,11 +208,6 @@
   border: 3px solid;
   border-radius: 4px;
   animation: pulse-colors 1s infinite alternate;
-}
-
-/* Inner glow for the key */
-.learning-key {
-  animation: pulse-glow 1s infinite alternate;
 }
 
 /* Black key adjustments */
