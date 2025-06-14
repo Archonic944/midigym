@@ -6,6 +6,7 @@
     import GameArea from "$lib/components/GameArea.svelte";
     import Results from "$lib/components/Results.svelte";
     import LiveStats from '$lib/components/LiveStats.svelte';
+    import MiniPiano from '$lib/components/MiniPiano.svelte';
 
     import { 
         currentNotes, 
@@ -25,6 +26,8 @@
     let selectedDurationSeconds: string | null = null;
     let selectedDurationLength: string | null = null;
     let selectedChordTypes: string[] = [];
+    let selectedRootNotes: string[] = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+    let learnMode = false;
     let chordsList: Array<{ name: string; notes: string[] }> = [];
     let timer = 0;
     let correctCountPage = 0;
@@ -64,11 +67,13 @@
         selectedChordTypes = selected;
     }
 
-    // Sync game settings store with duration and chord types
+    // Sync game settings store with duration, chord types, root notes and learn mode
     $: gameSettings.set({
         durationSeconds: selectedDurationSeconds,
         durationLength: selectedDurationLength,
-        chordTypes: selectedChordTypes
+        chordTypes: selectedChordTypes,
+        rootNotes: selectedRootNotes,
+        learnMode: learnMode
     });
 
     // Banner state
@@ -319,6 +324,24 @@
                     onSelectionChange={handleChordTypesChange}
                 />
             </div>
+            
+            <div class="content-box other-settings-box">
+                <h3>Other Settings</h3>
+                
+                <div class="setting-section">
+                    <h4>Root Notes</h4>
+                    <MiniPiano bind:selectedNotes={selectedRootNotes} />
+                </div>
+                
+                <div class="setting-section">
+                    <h4>Learn Mode</h4>
+                    <label class="toggle-switch">
+                        <input type="checkbox" bind:checked={learnMode}>
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Show notes for chords</span>
+                    </label>
+                </div>
+            </div>
         </div>
     </div>
 {:else if pageState === 'stats' && finishedStats}
@@ -347,6 +370,7 @@
         />
         <GameArea
             chords={chordsList}
+            learnMode={$gameSettings.learnMode}
             on:progress={handleGameProgress}
             on:incorrect={handleGameIncorrect}
             on:finished={handleGameFinished}
@@ -363,7 +387,7 @@
 />
 
 <div class="piano-bottom-center">
-    <Piano {currentNotes} showTooltips={inputMode === "keyboard"}/>
+    <Piano {currentNotes} showTooltips={inputMode === "keyboard"} learningNotes={['C3', 'E3', 'G3']}/>
 </div>
 
 <style>
@@ -439,6 +463,77 @@
     .chord-types-box {
         min-width: 400px;
         max-width: 500px;
+    }
+    
+    .other-settings-box {
+        min-width: 300px;
+        max-width: 400px;
+    }
+    
+    .setting-section {
+        width: 100%;
+        margin-bottom: 16px;
+    }
+    
+    .setting-section:last-child {
+        margin-bottom: 0;
+    }
+    
+    .setting-section h4 {
+        color: var(--accent-color);
+        text-align: center;
+        margin: 0 0 8px 0;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        font-weight: normal;
+    }
+    
+    .toggle-switch {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        gap: 10px;
+        padding: 5px 0;
+    }
+    
+    .toggle-slider {
+        position: relative;
+        display: inline-block;
+        width: 36px;
+        height: 18px;
+        background-color: #444;
+        border-radius: 20px;
+        transition: .2s;
+    }
+    
+    .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 14px;
+        width: 14px;
+        left: 2px;
+        bottom: 2px;
+        background-color: white;
+        border-radius: 50%;
+        transition: .2s;
+    }
+    
+    input[type="checkbox"] {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    input[type="checkbox"]:checked + .toggle-slider {
+        background-color: var(--accent-color, #3498db);
+    }
+    
+    input[type="checkbox"]:checked + .toggle-slider:before {
+        transform: translateX(18px);
+    }
+    
+    .toggle-label {
+        font-size: 0.9rem;
     }
 
     .content-box h3 {

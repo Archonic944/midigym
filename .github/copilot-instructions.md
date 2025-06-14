@@ -37,16 +37,17 @@ Do not use %2_ for special characters.
 - **Card.svelte**: UI card with title, icon (SVG or emoji), and description. Emits click events.
 - **CardPicker.svelte**: Presents 1-4 Card options, handles selection logic.
 - **CheckboxPicker.svelte**: Lets user select chord types, grouped by category. Notifies parent on change.
-- **GameArea.svelte**: Core game logic. Listens to MIDI/computer keyboard notes, checks against target chords, tracks correct/incorrect answers, and emits progress/finished events.
+- **GameArea.svelte**: Core game logic. Listens to MIDI/computer keyboard notes, checks against target chords, tracks correct/incorrect answers, and emits progress/finished events. Supports learn mode to display chord notes.
+- **LiveStats.svelte**: Displays live statistics above the game area during gameplay. Shows CPM, accuracy, streak, time remaining/elapsed, and chords played. Updates in real-time as the user plays.
 - **MidiSetupModal.svelte**: Modal for MIDI device setup and calibration (e.g., setting middle C). Handles MIDI device selection and note detection.
+- **MiniPiano.svelte**: Interactive one-octave piano for selecting root notes. Allows multiple note selection with visual feedback.
 - **Piano.svelte**: Renders a 24-key piano (C3–B4), highlights pressed notes from currentNotes store.
 - **Results.svelte**: Displays game results (CPM, accuracy, correct/incorrect, duration, chord types) and play-again button.
 - **RowPicker.svelte**: Horizontal picker for options (e.g., duration), highlights selected, emits onSelect.
-- **LiveStats.svelte**: Displays live statistics above the game area during gameplay. Shows CPM, accuracy, streak, time remaining/elapsed, and chords played. Updates in real-time as the user plays.
 
 ## Stores (`src/lib/stores/`)
 
-- **gameSettings.ts**: Svelte store for game settings (duration, chord types, etc.).
+- **gameSettings.ts**: Svelte store for game settings (duration, chord types, root notes, learn mode, etc.).
 - **midiNotes.ts**: Svelte stores for current notes, MIDI keyboards, and MIDI/computer keyboard input logic. Includes helpers for note conversion and event handling.
 
 ## Types (`src/lib/types/`)
@@ -56,7 +57,7 @@ Do not use %2_ for special characters.
 ## Utilities (`src/lib/util/`)
 
 - **flatToSharp.ts**: Converts flat note names (e.g., Db) to sharps (e.g., C#).
-- **generate_chords.ts**: Generates random chord objects based on game settings and chord type mappings using Tonal.
+- **generate_chords.ts**: Generates random chord objects based on game settings (chord types and root notes) and chord type mappings using Tonal.
 
 ## Utilities (`src/util/`)
 

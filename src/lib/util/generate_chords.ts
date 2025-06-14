@@ -4,16 +4,16 @@ import { Chord, Note } from 'tonal';
 /**
  * Generate an array of chord objects based on the provided game settings.
  *
- * @param settings - The current game settings containing chordTypes.
+ * @param settings - The current game settings containing chordTypes and rootNotes.
  * @param count - The number of chords to generate.
  * @returns A new array of chord objects with notes and names.
  */
 export function generateChords(settings: GameSettings, count: number): Array<{ name: string; notes: string[] }> {
-    const { chordTypes } = settings;
+    const { chordTypes, rootNotes: settingRootNotes, learnMode } = settings;
     const availableChordTypes = Array.isArray(chordTypes) && chordTypes.length > 0
         ? chordTypes
         : ['Major', 'Minor', 'Sus2', 'Sus4'];
-
+        
     // Map chord type names to Tonal chord symbols
     const chordSymbolMap: Record<string, string> = {
         'Major': 'M',
@@ -35,7 +35,11 @@ export function generateChords(settings: GameSettings, count: number): Array<{ n
         'Aug7': '7#5'
     };
 
-    const rootNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+    const defaultRootNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+    const rootNotes = Array.isArray(settingRootNotes) && settingRootNotes.length > 0
+        ? settingRootNotes
+        : defaultRootNotes;
+    
     const result: Array<{ name: string; notes: string[] }> = [];
 
     for (let i = 0; i < count; i++) {
@@ -61,7 +65,9 @@ if (typeof process !== 'undefined' && process.argv[1] && process.argv[1].endsWit
     const dummySettings: GameSettings = {
         durationSeconds: null,
         durationLength: null,
-        chordTypes: ["Major", "Minor", "Sus2", "Sus4", "Maj7", "Min7", "Dom7", "MinMaj7", "Maj9", "Min9", "Dom9", "Add9", "Dim", "Aug", "Dim7", "HalfDim7", "Aug7"]
+        chordTypes: ["Major", "Minor", "Sus2", "Sus4", "Maj7", "Min7", "Dom7", "MinMaj7", "Maj9", "Min9", "Dom9", "Add9", "Dim", "Aug", "Dim7", "HalfDim7", "Aug7"],
+        rootNotes: ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
+        learnMode: false
     };
     const count = 15;
     console.log("Generating", count, "chords with settings:", dummySettings);

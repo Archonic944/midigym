@@ -109,7 +109,7 @@
       </div>
       <div class="divider"></div>
       <div class="calibration-section">
-        <label>Calibrate Middle C:</label>
+        <label>Calibrate Middle C: <strong>(optional!)</strong></label>
         {#if !awaitingMiddleC}
           <button class="wide-button"
             on:click={startMiddleCCalibration}

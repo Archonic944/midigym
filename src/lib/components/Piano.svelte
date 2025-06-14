@@ -4,6 +4,7 @@
   import type { Readable } from 'svelte/store';
   export let currentNotes: Readable<string[]>;
   export let showTooltips: boolean = false;
+  export let learningNotes: string[] = []; // Add this to highlight keys to learn
 
   console.log("aaaa");
   // keyColors: 24 items, in keyboard order: W B W B W W B W B W B W W B W B W W B W B W B W
@@ -45,6 +46,12 @@
   console.log(Object.entries(indexToNote));
   console.log(Object.entries(noteToKey));
 
+  // Function to check if a note is in the learning set
+  function isLearningKey(index: number): boolean {
+    const note = indexToNote[index];
+    return learningNotes.includes(note);
+  }
+
   // Update keyColors whenever currentNotes changes
   $: {
     keyColors = Array(24).fill(null);
@@ -64,19 +71,24 @@
   <div class="white-keys">
     {#each whiteKeyIndices as i}
       <div
-        class="white-key"
+        class="white-key {isLearningKey(i) ? 'learning-key' : ''}"
         style="
           border-color: {keyColors[i] || 'white'};
           box-shadow: {keyColors[i] ? `0 0 16px 2px ${keyColors[i]}` : 'none'};
           background: {keyColors[i] ? keyColors[i] : 'none'};
         "
-      >{#if showTooltips}<span class="tooltip-bottom">{noteToKey[indexToNote[i]]}</span>{/if}</div>
+      >
+        {#if isLearningKey(i)}
+          <span class="learning-outline"></span>
+        {/if}
+        {#if showTooltips}<span class="tooltip-bottom">{noteToKey[indexToNote[i]]}</span>{/if}
+      </div>
     {/each}
   </div>
   <div class="black-keys">
     {#each blackKeyIndices as { idx, afterWhite } }
       <div
-        class="black-key"
+        class="black-key {isLearningKey(idx) ? 'learning-key' : ''}"
         style="
           left: calc((100% / {whiteKeyIndices.length}) * ({afterWhite} + 1));
           border-color: {keyColors[idx] || 'white'};
@@ -84,9 +96,14 @@
           background: {keyColors[idx] ? keyColors[idx] : 'var(--background-color)'};
           transform: translateX(-50%);
         "
-      >{#if showTooltips}
-      <span class="tooltip-top">{noteToKey[indexToNote[idx]]}
-      </span>{/if}</div>
+      >
+        {#if isLearningKey(idx)}
+          <span class="learning-outline"></span>
+        {/if}
+        {#if showTooltips}
+        <span class="tooltip-top">{noteToKey[indexToNote[idx]]}</span>
+        {/if}
+      </div>
     {/each}
   </div>
 </div>
@@ -165,16 +182,84 @@
   flex-direction: column;
   justify-items: center;
 }
+
+/* Learning key animation */
+.learning-key {
+  position: relative;
+  z-index: 3;
+  overflow: hidden;
+}
+
+/* Create a simple pulsing outline and glow */
+.learning-outline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 3;
+  border: 3px solid;
+  border-radius: 4px;
+  animation: pulse-colors 1s infinite alternate;
+}
+
+/* Inner glow for the key */
+.learning-key {
+  animation: pulse-glow 1s infinite alternate;
+}
+
+/* Black key adjustments */
+.black-key .learning-outline {
+  opacity: 0.9;
+  border-width: 2px;
+}
+
+/* Animation for pulsing between colors */
+@keyframes pulse-colors {
+  0% {
+    border-color: var(--learn-color);
+    color: var(--learn-color);
+  }
+  100% {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+  }
+}
+
+/* Animation for inner glow */
+@keyframes pulse-glow {
+  0% {
+    box-shadow: inset 0 0 12px var(--learn-color);
+  }
+  100% {
+    box-shadow: inset 0 0 12px var(--accent-color);
+  }
+}
+
+@keyframes subtle-pulse {
+  0% {
+    filter: brightness(1);
+  }
+  100% {
+    filter: brightness(1.2);
+  }
+}
+
 .tooltip-bottom {
   color: lightgray;
   padding: 3px;
   margin-top: auto;
   text-align: center;
+  position: relative;
+  z-index: 3;
 }
 .tooltip-top {
   color: lightgray;
   padding: 3px;
   margin-bottom: auto;
   text-align: center;
+  position: relative;
+  z-index: 3;
 }
 </style>

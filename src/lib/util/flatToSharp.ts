@@ -1,4 +1,4 @@
-// Utility to convert flats to sharps
+// an entire file for flat to sharp...... :()
 // e.g. Db4 -> C#4, Bb -> A#, etc.
 // Note: this will also replace enharmonics like E# with F.
 export function flatToSharp(note: string): string {
