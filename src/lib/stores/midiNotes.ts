@@ -162,8 +162,9 @@ export function setupMidiAndKeyboard(mode: 'midi' | 'keyboard') {
     selectedMidiDevice.set(null);
     
     // Enable computer keyboard
-    disableComputerKeyboard(); // Remove any previous listeners to avoid duplicates
+    disableComputerKeyboard();
     enableComputerKeyboard();
+    
     return;
   }
   

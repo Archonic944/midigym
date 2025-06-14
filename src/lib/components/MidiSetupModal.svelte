@@ -83,7 +83,6 @@
     selectedKeyboard = $selectedMidiDevice;
   }
   $: {
-    // Find index of selected keyboard
     const deviceIndex = keyboards.findIndex(kb => kb === selectedKeyboard);
     if (deviceIndex >= 0) {
       selectedIdx = deviceIndex;
