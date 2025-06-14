@@ -10,6 +10,7 @@
   const dispatch = createEventDispatcher();
 
   export let chords: Array<{ name: string; notes: string[] }> = [];
+  export let learnMode: boolean = false;
 
   let currentIndex = 0;
   let correctCount = 0;
@@ -180,6 +181,9 @@
           <span class="cursor{ $flashError ? ' shake' : '' }"></span>
         {/if}
         {chord.name}
+        {#if learnMode && idx === currentIndex}
+          <span class="chord-notes">{chord.notes.join(', ')}</span>
+        {/if}
       </span>
     {/each}
     {#if hasOverflow}
@@ -256,6 +260,14 @@
     background: none;
     display: inline-block;
     margin-bottom: 0.2em;
+  }
+  
+  .chord-notes {
+    display: block;
+    font-size: 0.65em;
+    color: var(--accent-color, #3498db);
+    margin-top: 0.2em;
+    font-weight: normal;
   }
   .chord .cursor {
     position: absolute;

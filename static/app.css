@@ -9,6 +9,7 @@
   --accent-color: #f9f570;
   --text-color: white;
   --background-color: rgb(30, 30, 30);
+  --learn-color: #4bdc65;
   --header-color-clear: color-mix(in srgb, var(--header-color) 75%, var(--background-color) 25%);
   --accent-color-clear: color-mix(in srgb, var(--accent-color) 75%, var(--background-color) 25%);
 }
