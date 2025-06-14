@@ -18,7 +18,7 @@
     import { gameSettings } from "$lib/stores/gameSettings";
     import { generateChords } from "$lib/util/generate_chords";
     import { onDestroy, onMount } from "svelte";
-    import { tick } from "svelte";
+    import { assignOctaveNumbers } from '$lib/util/miscUtil';
 
     let showMidiModal = false;
     let setupComplete = false;
@@ -44,6 +44,7 @@
     let streak = 0;
     let currentCpm = 0;
     let currentAccuracy = 100;
+    let currentChordIndex = 0;
     
     // Selected MIDI keyboard from store
     $: selectedKeyboard = $selectedMidiDevice;
@@ -374,6 +375,7 @@
             on:progress={handleGameProgress}
             on:incorrect={handleGameIncorrect}
             on:finished={handleGameFinished}
+            bind:currentIndex={currentChordIndex}
         />
     </div>
 {/if}
@@ -387,7 +389,7 @@
 />
 
 <div class="piano-bottom-center">
-    <Piano {currentNotes} showTooltips={inputMode === "keyboard"} learningNotes={['C3', 'E3', 'G3']}/>
+    <Piano {currentNotes} showTooltips={inputMode === "keyboard"} learningNotes={(learnMode ? (chordsList[currentChordIndex] ? assignOctaveNumbers(chordsList[currentChordIndex].notes) : []) : [])}/>
 </div>
 
 <style>
@@ -566,8 +568,6 @@
         margin-top: 16px;
         width: 100%;
     }
-
-    /* .timer and .notes-list selectors removed as they are no longer used */
 
     .banner {
         width: 100vw;

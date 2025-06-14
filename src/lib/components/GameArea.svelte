@@ -12,7 +12,7 @@
   export let chords: Array<{ name: string; notes: string[] }> = [];
   export let learnMode: boolean = false;
 
-  let currentIndex = 0;
+  export let currentIndex = 0;
   let correctCount = 0;
   let incorrectCount = 0;
 
