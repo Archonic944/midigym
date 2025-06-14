@@ -101,7 +101,7 @@
   filter: invert(0) brightness(1) contrast(1);
 }
 .card-description {
-  font-size: 1.05rem; /* Reduced from 1.13rem */
+  font-size: 0.9rem; /* Reduced from 1.13rem */
   color: inherit;
   text-align: center;
   margin-top: 0.4rem; /* Reduced from 0.5rem */
@@ -135,7 +135,7 @@
   }
   
   .card-description {
-    font-size: 1rem;
+    font-size: 0.8rem;
   }
 }
 

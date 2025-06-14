@@ -84,10 +84,9 @@
             pageState = 'settings';
         } else if (card.title === "MIDI Keyboard") {
             setupMidiAndKeyboard("midi");
-            // Show MIDI modal to let user select or configure device
             showMidiModal = true;
             inputMode = "midi";
-            // We'll set pageState to 'settings' after modal is closed and device selected
+            // Don't open settings yet; set pageState to 'settings' after modal is closed and device selected
         }
     }
 
@@ -364,7 +363,7 @@
 />
 
 <div class="piano-bottom-center">
-    <Piano {currentNotes}  />
+    <Piano {currentNotes} showTooltips={inputMode === "keyboard"}/>
 </div>
 
 <style>
@@ -574,6 +573,5 @@
         align-items: stretch;
         min-height: 100vh;
         width: 100vw;
-        /* Ensure live stats and game area stack vertically */
     }
 </style>
