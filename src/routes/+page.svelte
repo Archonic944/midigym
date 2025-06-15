@@ -412,6 +412,8 @@
         durationLength={finishedStats.durationLength}
         chordTypes={finishedStats.chordTypes}
         allChordTypes={finishedStats.allChordTypes}
+        learnMode={learnMode}
+        rootNotes={selectedRootNotes}
         onPlayAgain={playAgain}
         on:back={() => { pageState = 'settings'; }}
     />
@@ -425,6 +427,7 @@
             cpm={currentCpm}
             accuracy={currentAccuracy}
             streak={streak}
+            learnMode={learnMode}
         />
         <GameArea
             chords={chordsList}
