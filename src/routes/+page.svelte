@@ -12,7 +12,8 @@
     import { 
         currentNotes, 
         setupMidiAndKeyboard, 
-        selectedMidiDevice 
+        selectedMidiDevice, 
+        clearCurrentNotes // Import the clearCurrentNotes action
     } from "$lib/stores/midiNotes";
     import RowPicker from "$lib/components/RowPicker.svelte";
     import CheckboxPicker from "$lib/components/CheckboxPicker.svelte";
@@ -123,6 +124,33 @@
 
     function openMidiConfig() {
         showMidiModal = true;
+    }
+
+    function endGame() {
+        // Clear intervals
+        if (timerInterval) clearInterval(timerInterval);
+        if (elapsedTimeInterval) clearInterval(elapsedTimeInterval);
+        
+        // Reset all game-related variables
+        correctCountPage = 0;
+        incorrectCountPage = 0;
+        streak = 0;
+        currentCpm = 0;
+        currentAccuracy = 100;
+        currentElapsedTime = 0;
+        currentChordIndex = 0;
+        timer = 0;
+        chordsLeftTotal = 0;
+        chordsList = []; // Clear the chord list
+        gameFinished = false;
+        gameStartTime = 0;
+        finishedStats = null;
+        
+        // Clear any currently pressed notes
+        clearCurrentNotes();
+        
+        // Return to settings screen without calculating stats
+        pageState = 'settings';
     }
 
     function startGame() {
@@ -282,7 +310,9 @@
             />
             <span class="banner-tooltip">using MIDI keyboard</span>
         {/if}
-        {#if inputMode}
+        {#if pageState === 'game'}
+            <button class="banner-btn end-test" on:click={endGame}>End Test</button>
+        {:else if inputMode}
             <button class="banner-btn" on:click={goToInputConfig}>Input Config</button>
             {#if inputMode === 'midi'}
                 <button class="banner-btn less-emph" on:click={openMidiConfig}>Configure MIDI</button>
@@ -724,6 +754,18 @@
         color: #fff;
         border-color: #2196f3;
     }
+    
+    .banner-btn.end-test {
+        background: transparent;
+        border: 1px solid #e74c3c;
+        color: #fff;
+        font-weight: 500;
+    }
+    
+    .banner-btn.end-test:hover {
+        background: #c0392b;
+    }
+    
     .banner-tooltip {
         font-size: 0.92em;
         color: #aaa;
