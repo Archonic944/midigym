@@ -159,7 +159,10 @@ p {
 }
 
 strong {
-  color: var(--accent-color);
+  background: linear-gradient(to right, color-mix(in srgb, var(--text-color) 60%, var(--accent-color) 40%), var(--accent-color));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 /* Form elements */

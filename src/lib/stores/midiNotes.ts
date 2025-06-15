@@ -1,5 +1,6 @@
 import { writable, get } from 'svelte/store';
 import { WebMidi, type Input, type NoteMessageEvent } from 'webmidi';
+import { playSound } from '$lib/util/soundManager';
 
 // Store for currently playing notes (array of note names, e.g., ["C4", "E4"])
 export const currentNotes = writable<string[]>([]);
@@ -82,6 +83,9 @@ function handleNoteOn(e: NoteMessageEvent) {
   
   activeNotes.add(adjNote);
   currentNotes.set(Array.from(activeNotes));
+  
+  // Play the corresponding note sound
+  playSound(adjNote, 0.6);
 }
 
 function handleNoteOff(e: NoteMessageEvent) {
@@ -101,6 +105,9 @@ function handleKeyDown(event: KeyboardEvent) {
     
     activeNotes.add(note);
     currentNotes.set(Array.from(activeNotes));
+    
+    // Play the corresponding note sound for keyboard input
+    playSound(note, 0.6);
   }
 }
 

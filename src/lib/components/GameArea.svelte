@@ -2,7 +2,7 @@
   import { clearCurrentNotes, currentNotes } from "$lib/stores/midiNotes";
   import { onDestroy, createEventDispatcher, onMount, tick } from "svelte";
   import { writable } from "svelte/store";
-
+  import { playSound } from "$lib/util/soundManager";
   import { Chord, Note } from "tonal";
   import { replaceFlatsWithSharps } from "../util/flatToSharp";
 
@@ -84,10 +84,12 @@
       if (wrongNote) {
         incorrectCount++;
         flashError.set(true);
+        playSound('incorrect', 0.7); // Play incorrect sound
         setTimeout(() => flashError.set(false), 300);
         dispatch('incorrect');
       } else {
         correctCount++;
+        playSound('correct'); // Play correct sound
         setTimeout(() => {
           clearCurrentNotes();
         }, 150);
