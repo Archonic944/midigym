@@ -13,34 +13,23 @@
   import { createEventDispatcher } from 'svelte';
 
   const dispatch = createEventDispatcher();
-
   export let open = false;
   export let onClose: () => void = () => {};
-
-  // Bind to the central store
   export let selectedKeyboard: WebMidi.MIDIInput | null = null;
-
   let selectedIdx: number = 0;
   let awaitingMiddleC = false;
   let detectedNote: string | null = null;
-
   // Listen for note input when calibrating
   function startMiddleCCalibration() {
     awaitingMiddleC = true;
     detectedNote = null;
-
-    // Use the centralized calibration function
     startCalibration((noteIdentifier: string) => {
       if (!awaitingMiddleC) return;
-      
       detectedNote = noteIdentifier;
       if (!detectedNote) return;
-      
       rootNote.set(detectedNote);
       awaitingMiddleC = false;
       setTimeout(() => { detectedNote = null; }, 1200);
-      
-      // End calibration mode
       endCalibration();
     });
   }

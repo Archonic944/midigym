@@ -42,7 +42,7 @@
     let gameFinished = false;
     let finishedStats: { cpm: number; accuracy: number; correct: number; incorrect: number; durationSeconds: number | null; durationLength: string | null; chordTypes: string[]; allChordTypes: string[] } | null = null;
     
-    // Track streak and live stats
+    // Track streak and live stats (TODO: consolidate this within GameArea.svelte)
     let streak = 0;
     let currentCpm = 0;
     let currentAccuracy = 100;
@@ -51,14 +51,11 @@
     // Selected MIDI keyboard from store
     $: selectedKeyboard = $selectedMidiDevice;
 
-    // State machine for page: 'input', 'settings', 'game', 'stats'
     type PageState = 'input' | 'settings' | 'game' | 'stats';
     let pageState: PageState = 'input';
 
     // Check if a game can be started (either duration in seconds or length must be selected)
     $: canStartGame = !!selectedDurationSeconds || !!selectedDurationLength;
-
-    // Track hover state for Go button
     let goButtonHovered = false;
 
     // Handle mutual exclusivity for duration options
@@ -85,7 +82,6 @@
         learnMode: learnMode
     });
 
-    // Banner state
     let inputMode: 'keyboard' | 'midi' | null = null;
 
     // Set input mode when option picked
@@ -107,7 +103,6 @@
     function handleMidiModalClose() {
         showMidiModal = false;
         if (selectedCard && selectedCard.title === "MIDI Keyboard") {
-            // Check if a MIDI device is selected via the store
             if ($selectedMidiDevice) {
                 setupComplete = true;
                 inputMode = "midi";
@@ -154,10 +149,9 @@
     }
 
     function startGame() {
-        // Validate that user has selected either a duration or chord count
         const { durationSeconds, durationLength } = $gameSettings;
         if (!durationSeconds && !durationLength) {
-            // Don't start if no duration is selected
+            // Don't start if no duration is selected (this shouldn't be possible anyway)
             return;
         }
 
@@ -180,7 +174,6 @@
         currentElapsedTime = 0;
         gameStartTime = Date.now();
         
-        // Clear any existing intervals
         if (timerInterval) clearInterval(timerInterval);
         if (elapsedTimeInterval) clearInterval(elapsedTimeInterval);
         
@@ -207,7 +200,6 @@
         pageState = 'game';
     }
 
-    // Function to update real-time statistics
     function updateLiveStats() {
         const elapsedMs = Date.now() - gameStartTime;
         const elapsedMin = elapsedMs / 60000;
@@ -282,13 +274,12 @@
     ];
 
     onMount(() => {
-        // Preload all sound files to avoid first-play delay
         preloadAllSounds();
     });
 
     onDestroy(() => {
         clearInterval(timerInterval);
-        clearInterval(elapsedTimeInterval); // Clear elapsed time interval on destroy
+        clearInterval(elapsedTimeInterval);
     });
 </script>
 
@@ -322,7 +313,9 @@
     <div class="banner-center">
         <span class="banner-title">midigym <strong>(beta)</strong></span>
     </div>
-    <div class="banner-right"></div>
+    <div class="banner-right">
+        <span class="fullscreen-recommended">fullscreen recommended</span>
+    </div>
 </div>
 
 {#if pageState === 'input'}
@@ -454,6 +447,15 @@
 
 <div class="piano-bottom-center">
     <Piano {currentNotes} showTooltips={inputMode === "keyboard"} learningNotes={(learnMode ? (chordsList[currentChordIndex] ? assignOctaveNumbers(chordsList[currentChordIndex].notes) : []) : [])}/>
+</div>
+
+<div class="footer-detail">
+    <div>
+        made with <span style="color:#e74c3c">&lt;3</span> by <a href="https://linktr.ee/archonic" target="_blank" rel="noopener" class="footer-link">archonic</a>
+    </div>
+    <div>
+        <a href="https://github.com/Archonic944/midigym/issues" target="_blank" rel="noopener" class="footer-link">report issues on GitHub</a>
+    </div>
 </div>
 
 <style>
@@ -781,5 +783,43 @@
         align-items: stretch;
         min-height: 100vh;
         width: 100vw;
+    }
+
+    .footer-detail {
+        position: fixed;
+        left: 1.2rem;
+        bottom: 1.2rem;
+        z-index: 2000;
+        font-size: 0.93rem;
+        color: #888;
+        font-family: monospace;
+        opacity: 0.85;
+        line-height: 1.3;
+        text-align: left;
+    }
+    .footer-link {
+        color: #888;
+        text-decoration: underline dotted;
+        transition: color 0.15s;
+    }
+    .footer-link:hover {
+        color: var(--accent-color, #2196f3);
+    }
+    .banner-right {
+        position: absolute;
+        right: 1.5rem;
+        top: 0;
+        height: 100%;
+        display: flex;
+        align-items: center;
+    }
+    .fullscreen-recommended {
+        font-size: 0.98em;
+        color: #aaa;
+        opacity: 0.85;
+        font-family: monospace;
+        margin-left: 0.7em;
+        letter-spacing: 0.01em;
+        user-select: none;
     }
 </style>

@@ -84,7 +84,6 @@ function handleNoteOn(e: NoteMessageEvent) {
   activeNotes.add(adjNote);
   currentNotes.set(Array.from(activeNotes));
   
-  // Play the corresponding note sound
   playSound(adjNote, 0.6);
 }
 
@@ -106,7 +105,6 @@ function handleKeyDown(event: KeyboardEvent) {
     activeNotes.add(note);
     currentNotes.set(Array.from(activeNotes));
     
-    // Play the corresponding note sound for keyboard input
     playSound(note, 0.6);
   }
 }
@@ -133,7 +131,6 @@ function disableComputerKeyboard() {
   }
 }
 
-// Disconnect all existing MIDI inputs
 function disconnectAllMidiInputs() {
   WebMidi.inputs.forEach((input: Input) => {
     input.removeListener("noteon", handleNoteOn);
@@ -148,13 +145,8 @@ export function getMidiKeyboards(): Input[] {
 
 // Select a specific MIDI device
 export function selectMidiDevice(device: Input | null) {
-  // Remove listeners from all devices
   disconnectAllMidiInputs();
-  
-  // Update the selected device store
   selectedMidiDevice.set(device);
-  
-  // If a device is selected, add listeners to it
   if (device) {
     device.addListener("noteon", handleNoteOn);
     device.addListener("noteoff", handleNoteOff);
@@ -164,14 +156,10 @@ export function selectMidiDevice(device: Input | null) {
 
 export function setupMidiAndKeyboard(mode: 'midi' | 'keyboard') {
   if (mode === 'keyboard') {
-    // Clear any existing MIDI setup
     disconnectAllMidiInputs();
     selectedMidiDevice.set(null);
-    
-    // Enable computer keyboard
     disableComputerKeyboard();
     enableComputerKeyboard();
-    
     return;
   }
   
