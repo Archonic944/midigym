@@ -7,6 +7,7 @@
   export let accuracy: number = 100;
   export let streak: number = 0;
   export let chordsPlayed: number = 0;
+  export let learnMode: boolean = false;
 
   $: streakColor = streak > 0 ? '#2ecc71' : streak < 0 ? '#e74c3c' : '#aaa';
   $: streakSign = streak > 0 ? '+' : streak < 0 ? '' : '';
@@ -18,6 +19,10 @@
     return `${m}:${s.toString().padStart(2, '0')}`;
   }
 </script>
+
+{#if learnMode}
+  <div class="learn-mode-header">LEARN MODE</div>
+{/if}
 
 <div class="live-stats-bar">
   <div class="stats-left stats-side">
@@ -42,6 +47,20 @@
 </div>
 
 <style>
+  .learn-mode-header {
+    width: 100vw;
+    text-align: center;
+    font-family: monospace;
+    font-size: 1.08rem;
+    font-weight: bold;
+    color: #2196f3;
+    background: rgba(30, 30, 30, 0.97);
+    letter-spacing: 0.13em;
+    padding: 0.18em 0 0.18em 0;
+    border-bottom: 1.5px solid #222;
+    text-transform: uppercase;
+    opacity: 0.93;
+  }
   .live-stats-bar {
     width: 100vw;
     min-height: 3em; /* Reduced from 3.5em */

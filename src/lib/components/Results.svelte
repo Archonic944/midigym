@@ -8,6 +8,8 @@
   export let chordTypes: string[] = [];
   export let allChordTypes: string[] = [];
   export let onPlayAgain: () => void;
+  export let learnMode: boolean = false;
+  export let rootNotes: string[] = [];
 
   import { createEventDispatcher } from "svelte";
   const dispatch = createEventDispatcher();
@@ -68,6 +70,12 @@
   </div>
   <div class="settings-box">
     <h3>Settings</h3>
+    {#if learnMode}
+      <div class="setting-row">
+        <div class="setting-label">Mode</div>
+        <div class="setting-value learn-mode">Learn Mode</div>
+      </div>
+    {/if}
     <div class="setting-row">
       <div class="setting-label">Chord Types</div>
       <div class="setting-value">
@@ -75,6 +83,14 @@
           <span class="chord-type">{type}{i < consolidatedChordTypes.length - 1 ? ', ' : ''}</span>
         {/each}
         <span class="chord-type-count">({chordTypeCount}/{allChordTypeCount})</span>
+      </div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-label">Root Notes</div>
+      <div class="setting-value root-notes">
+        {#each rootNotes as note, i}
+          <span class="root-note">{note}{i < rootNotes.length - 1 ? ', ' : ''}</span>
+        {/each}
       </div>
     </div>
     {#if durationSeconds}
@@ -232,5 +248,25 @@
   color: #aaa;
   margin-left: 0.5rem;
   font-size: 0.95rem;
+}
+.learn-mode {
+  color: #2196f3;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.root-notes {
+  margin-top: 0.1rem;
+  font-size: 1.05rem;
+  color: #fff;
+}
+.root-note {
+  background: #222;
+  color: #fff;
+  border-radius: 0.5rem;
+  padding: 0.1rem 0.7rem;
+  margin-right: 0.3rem;
+  font-size: 1rem;
+  display: inline-block;
 }
 </style>
