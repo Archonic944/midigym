@@ -4,7 +4,7 @@
   import { writable } from "svelte/store";
   import { playSound } from "$lib/util/soundManager";
   import { Chord, Note } from "tonal";
-  import { replaceFlatsWithSharps } from "../util/flatToSharp";
+  import { formatNote} from "../util/flatToSharp";
 
   let pianoRef: any = null;
   const dispatch = createEventDispatcher();
@@ -22,23 +22,6 @@
 
   let gameAreaRef: HTMLElement;
   let hasOverflow = false;
-
-  // Returns MIDI pitch class (0-11) or throws if note is invalid
-  function midiPitchClass(note: string): number {
-    const midiValue = Note.midi(note);
-    if (midiValue === null) throw new Error(`Invalid note: ${note}`);
-    return midiValue % 12;
-  }
-
-  // Compare two arrays as sets (ignoring order and duplicates)
-  function arraysEqualAsSets(a: number[], b: number[]): boolean {
-    if (a.length !== b.length) return false;
-    const aSet = new Set(a);
-    const bSet = new Set(b);
-    if (aSet.size !== bSet.size) return false;
-    for (const val of aSet) if (!bSet.has(val)) return false;
-    return true;
-  }
 
   function updateOverflow() {
     if (gameAreaRef) {
@@ -69,9 +52,9 @@
 
     if (notes.length === 0) return;
 
-    // Prune/sort notes
+    // Prune + sort notes (pruning gets rid of octave number)
     let prunedNotes = sortAndPruneNotes(notes);
-    let targetNotes = replaceFlatsWithSharps([...target.notes]);
+    let targetNotes = [...target.notes].map(formatNote);
 
     // Only check for an incorrect chord when the user plays the same amount of notes as the target chord
     const wrongNote = !targetNotes.join("").includes(prunedNotes.join(""));
@@ -94,7 +77,6 @@
         echoIdx.set(currentIndex);
         setTimeout(() => echoIdx.set(null), 600);
 
-        // Advance to next chord
         currentIndex++;
         // After DOM updates, scroll the new target into view
         await tick();
@@ -112,7 +94,7 @@
 }
           updateOverflow();
         } else {
-          // No more chords
+          // No more chords - congrats u finished!!
           dispatch('finished', {});
         }
       }
@@ -121,7 +103,6 @@
   onDestroy(unsub);
 
   onMount(() => {
-    // Reset scroll when test starts
     if (gameAreaRef) {
       gameAreaRef.scrollTo({ top: 0 });
       updateOverflow();
@@ -133,7 +114,6 @@
         const chordElements = gameAreaRef.querySelectorAll<HTMLElement>('.chord');
         const currentEl = chordElements[currentIndex];
         if (currentEl) {
-          // Use block: 'nearest' so it won't jump unnecessarily if already visible
           currentEl.scrollIntoView({ block: 'nearest', inline: 'center' });
         }
       }

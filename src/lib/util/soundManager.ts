@@ -1,18 +1,11 @@
 /**
  * Sound Manager for MidiGym
  * Handles loading and playing sounds for piano notes, correct/incorrect feedback, and game completion
+ * All sounds played on the site use the function playSound
  */
 
 // Cache for preloaded sounds
 const soundCache: Record<string, HTMLAudioElement> = {};
-
-// Default volume levels
-const DEFAULT_VOLUMES = {
-  notes: 0.6,      // Piano notes
-  correct: 0.7,    // Correct answer sound
-  incorrect: 0.7,  // Incorrect answer sound
-  finish: 0.7      // Game finish sound
-};
 
 /**
  * Preload a sound file into the cache
@@ -36,18 +29,10 @@ function preloadSound(key: string, path: string): void {
 export function playSound(key: string, volume: number = 0.5): void {
   // If we haven't loaded this sound yet, load it now
   if (!soundCache[key]) {
-    // Handle piano notes vs. feedback sounds
-    const isNote = /^[A-G](#|b)?[3-4]$/.test(key);
-    // Encode the key to handle special characters like '#' in C#
-    const encodedKey = encodeURIComponent(key);
-    const path = isNote 
-      ? `/sounds/${encodedKey}.ogg` 
-      : `/sounds/${key}.ogg`;
-    
+    const path = `/sounds/${key}.ogg`
     preloadSound(key, path);
   }
   
-  // Clone the audio to allow overlapping sounds
   const sound = soundCache[key].cloneNode() as HTMLAudioElement;
   sound.volume = volume;
   sound.play().catch(err => {
@@ -56,7 +41,7 @@ export function playSound(key: string, volume: number = 0.5): void {
 }
 
 /**
- * Preload all piano sounds and feedback sounds to eliminate first-play delay
+ * Preload all piano sounds and feedback sounds
  */
 export function preloadAllSounds(): void {
   // Piano notes (C3 to B4)

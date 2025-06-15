@@ -22,7 +22,7 @@
     'Dim & Aug': ['Dim', 'Aug', 'Dim7', 'HalfDim7', 'Aug7']
   };
 
-  // Consolidate chord types
+  // Consolidate chord types into complete categories to save screen space
   function consolidateChordTypes(selected: string[]): string[] {
     const consolidated: string[] = [];
     let used = new Set<string>();
