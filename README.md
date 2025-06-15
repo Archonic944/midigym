@@ -39,4 +39,6 @@ I am open to any and all contributions!
 
 > *No, not desparate enough...*
 
-PLEASE PLEASE PLEASE CONTRIBUTE!!! Fork and make a pull request, and I will review promptly. New features are ok, but try not to go overboard (or at least open an issue so we can talk about it before you do)!
+PLEASE PLEASE PLEASE CONTRIBUTE!!! Fork and make a pull request, suggest new features, mail patches to my house, ANYTHING!!
+
+Large additions are ok, but try not to go overboard (or at least open an issue so we can talk about it before you do)!
