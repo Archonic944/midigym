@@ -7,6 +7,7 @@
     import Results from "$lib/components/Results.svelte";
     import LiveStats from '$lib/components/LiveStats.svelte';
     import MiniPiano from '$lib/components/MiniPiano.svelte';
+    import { playSound, preloadAllSounds } from "$lib/util/soundManager";
 
     import { 
         currentNotes, 
@@ -192,6 +193,9 @@
         if (timerInterval) clearInterval(timerInterval);
         if (elapsedTimeInterval) clearInterval(elapsedTimeInterval);
         
+        // Play finish sound 
+        playSound('finish', 0.7);
+        
         // Calculate stats
         const totalChords = correctCountPage + incorrectCountPage;
         const elapsedMs = Date.now() - gameStartTime;
@@ -237,6 +241,11 @@
         },
     ];
 
+    onMount(() => {
+        // Preload all sound files to avoid first-play delay
+        preloadAllSounds();
+    });
+
     onDestroy(() => {
         clearInterval(timerInterval);
         clearInterval(elapsedTimeInterval); // Clear elapsed time interval on destroy
@@ -269,15 +278,14 @@
         {/if}
     </div>
     <div class="banner-center">
-        <span class="banner-title">midigym</span>
+        <span class="banner-title">midigym <strong>(beta)</strong></span>
     </div>
     <div class="banner-right"></div>
 </div>
 
 {#if pageState === 'input'}
-<h1>MidiGym</h1>
-<p>
-    Your interactive platform for <strong>learning and practicing</strong> MIDI skills.
+<p style="max-width: 50rem; margin-left: auto; margin-right: auto; margin-bottom: 0px;">
+    A <strong>chord symbol typing test</strong>: play the listed chord symbols as fast as you can, and find out your <strong>chords per minute!</strong><br>Also has <strong>learn mode.</strong>
 </p>
 {/if}
 
@@ -290,7 +298,7 @@
     </div>
 {:else if pageState === 'settings'}
     <div class="main-layout">
-        <div class="notes-list-debug">
+        <div class="notes-list-debug" hidden> <!-- Debug -->
             Notes: <br />
             {#each $currentNotes as note}
                 {note}
