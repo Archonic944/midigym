@@ -184,7 +184,7 @@
 
     function handleGameIncorrect() {
         incorrectCountPage++;
-        streak = streak > 0 ? -1 : streak - 1; // Reset streak on incorrect and start counting negative
+        streak = 0; // Reset streak on incorrect and start counting negative
         updateLiveStats();
     }
 
