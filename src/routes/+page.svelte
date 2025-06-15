@@ -54,6 +54,12 @@
     type PageState = 'input' | 'settings' | 'game' | 'stats';
     let pageState: PageState = 'input';
 
+    // Check if a game can be started (either duration in seconds or length must be selected)
+    $: canStartGame = !!selectedDurationSeconds || !!selectedDurationLength;
+
+    // Track hover state for Go button
+    let goButtonHovered = false;
+
     // Handle mutual exclusivity for duration options
     function handleSecondsSelection(option: string) {
         selectedDurationSeconds = option;
@@ -120,8 +126,14 @@
     }
 
     function startGame() {
-        finishedStats = null;
+        // Validate that user has selected either a duration or chord count
         const { durationSeconds, durationLength } = $gameSettings;
+        if (!durationSeconds && !durationLength) {
+            // Don't start if no duration is selected
+            return;
+        }
+
+        finishedStats = null;
         if (durationSeconds) {
             timer = parseInt(durationSeconds);
         }
@@ -323,7 +335,21 @@
                         onSelect={handleLengthSelection}
                     />
                 </div>
-                <button class="wide-button go-button" on:click={startGame}>Go</button>
+                <div class="go-button-container">
+                    <button 
+                        class="wide-button go-button {!canStartGame ? 'disabled' : ''}"
+                        on:click={startGame}
+                        on:mouseover={() => {goButtonHovered = true;}}
+                        on:focus={() => {goButtonHovered = true;}}
+                        on:mouseout={() => goButtonHovered = false}
+                        on:blur={() => goButtonHovered = false}
+                    >
+                        Go
+                    </button>
+                    {#if !canStartGame && goButtonHovered}
+                        <div class="tooltip">Please select a duration (seconds or chord count)</div>
+                    {/if}
+                </div>
             </div>
             
             <div class="content-box chord-types-box">
@@ -575,6 +601,43 @@
     .go-button {
         margin-top: 16px;
         width: 100%;
+    }
+    
+    .go-button.disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        background-color: #666;
+    }
+    
+    .go-button-container {
+        position: relative;
+        width: 100%;
+    }
+    
+    .tooltip {
+        position: absolute;
+        bottom: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        z-index: 10;
+        pointer-events: none;
+    }
+    
+    .tooltip:after {
+        content: '';
+        position: absolute;
+        top: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 0 8px 8px;
+        border-style: solid;
+        border-color: transparent transparent rgba(0, 0, 0, 0.8);
     }
 
     .banner {
