@@ -1,5 +1,6 @@
 import type { Chord } from "@tonaljs/chord";
-import { flatToSharp } from "./flatToSharp";
+import { formatNote } from "./flatToSharp";
+import { Note } from "tonal";
 
 export function reverseMap<K extends string | number | symbol, A extends string | number | symbol>(map: Record<K, A>): Record<A, K> {
     let newRecord = {} as Record<A,K>;
@@ -21,7 +22,7 @@ export function assignOctaveNumbers(notes: string[]): string[]{
     let finalNotes = [];
     let lastNum = 0;
     for(let note of notes){
-        note = flatToSharp(note);
+        note = formatNote(note);
         let pc = pcNum(note);
         if(pc == -1) console.warn("Pitch class not found in pc map: " + note);
         else if(pc < lastNum) octave++;

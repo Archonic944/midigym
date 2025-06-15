@@ -71,12 +71,9 @@
 
     // Prune/sort notes
     let prunedNotes = sortAndPruneNotes(notes);
-    // Use Chord.detect to identify the played chord(s)
-    const detected = Chord.detect(notes);
-
     let targetNotes = replaceFlatsWithSharps([...target.notes]);
 
-    // Check if pruned pattern exists within target chord string representation
+    // Only check for an incorrect chord when the user plays the same amount of notes as the target chord
     const wrongNote = !targetNotes.join("").includes(prunedNotes.join(""));
     if (targetNotes.length === prunedNotes.length) {
       console.log("Target notes: " + targetNotes);
@@ -84,12 +81,12 @@
       if (wrongNote) {
         incorrectCount++;
         flashError.set(true);
-        playSound('incorrect', 0.7); // Play incorrect sound
+        playSound('incorrect', 0.4);
         setTimeout(() => flashError.set(false), 300);
         dispatch('incorrect');
       } else {
         correctCount++;
-        playSound('correct'); // Play correct sound
+        playSound('correct');
         setTimeout(() => {
           clearCurrentNotes();
         }, 150);

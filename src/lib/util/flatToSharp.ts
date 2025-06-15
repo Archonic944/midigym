@@ -1,23 +1,13 @@
 // an entire file for flat to sharp...... :()
-// e.g. Db4 -> C#4, Bb -> A#, etc.
+// Formats a note preferring less accidentals over more and sharps over flats.
+
+import { Note } from "tonal";
+
 // Note: this will also replace enharmonics like E# with F.
-export function flatToSharp(note: string): string {
-  // Only handle single accidental (b)
-  const match = note.match(/^([A-G])b(\d*)$/);
-  if (!match) return note;
-  const noteBase = match[1];
-  const octave = match[2];
-  // Map flats to their enharmonic sharps
-  const flatToSharpMap: Record<string, string> = {
-    'Db': 'C#',
-    'Eb': 'D#',
-    'Gb': 'F#',
-    'Ab': 'G#',
-    'Bb': 'A#',
-  };
-  const enharmonic = flatToSharpMap[noteBase + 'b'];
-  if (!enharmonic) return note;
-  return accidentalToNeutral(enharmonic) + octave;
+export function formatNote(note: string): string {
+  note = Note.simplify(note);
+  if(note.includes("b")) note = Note.enharmonic(note);
+  return note;
 }
 
 /**
@@ -37,5 +27,5 @@ export function accidentalToNeutral(pc: string): string {
 
 // Convert an array of notes, replacing flats with sharps
 export function replaceFlatsWithSharps(notes: string[]): string[] {
-  return notes.map(flatToSharp);
+  return notes.map(formatNote);
 }
