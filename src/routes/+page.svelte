@@ -121,7 +121,7 @@
         showMidiModal = true;
     }
 
-    function endGame() {
+    function resetGameState(){
         // Clear intervals
         if (timerInterval) clearInterval(timerInterval);
         if (elapsedTimeInterval) clearInterval(elapsedTimeInterval);
@@ -143,8 +143,10 @@
         
         // Clear any currently pressed notes
         clearCurrentNotes();
-        
-        // Return to settings screen without calculating stats
+    }
+
+    function endGame() {
+        resetGameState();
         pageState = 'settings';
     }
 
@@ -173,6 +175,7 @@
         currentAccuracy = 100;
         currentElapsedTime = 0;
         gameStartTime = Date.now();
+        currentChordIndex = 0;
         
         if (timerInterval) clearInterval(timerInterval);
         if (elapsedTimeInterval) clearInterval(elapsedTimeInterval);
@@ -248,6 +251,7 @@
     }
 
     function playAgain() {
+        
         startGame();
     }
 
