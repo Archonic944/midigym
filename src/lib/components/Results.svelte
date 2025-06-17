@@ -13,7 +13,7 @@
   export let learnMode: boolean = false;
   export let rootNotes: string[] = [];
 
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onDestroy } from "svelte";
   const dispatch = createEventDispatcher();
 
   // Chord type categories for consolidation
@@ -53,7 +53,7 @@
   $: consolidatedChordTypes = consolidateChordTypes(chordTypes);
   $: chordTypeCount = chordTypes.length;
   $: allChordTypeCount = allChordTypes.length;
-  currentNotes.subscribe(async notes => {
+  let d = currentNotes.subscribe(async notes => {
     let combined = notes.map((note) => {
       return note.replace(/\d+/g, "");
     });
@@ -62,6 +62,7 @@
       onPlayAgain();
     }
   });
+  onDestroy(d);
 </script>
 
 <div class="results-container">
