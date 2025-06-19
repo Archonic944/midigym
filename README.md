@@ -1,4 +1,4 @@
-# midigym (extremely beta)
+# [midigym](http://midigym.com) (still beta)
 
 **A chord symbol typing test. Aims to be a robust, customizable way of practicing and measuring your chord-reading skills.**
 ![chrome-capture-2025-6-15](https://github.com/user-attachments/assets/1a553556-40e1-4d7b-b128-02e7845d1a47)
