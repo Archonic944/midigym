@@ -1,5 +1,6 @@
 <script lang="ts">
   import { currentNotes } from "$lib/stores/midiNotes";
+  import { getChordTypeGroups } from "$lib/util/chordCategories";
 
   export let cpm: number;
   export let accuracy: number;
@@ -8,7 +9,6 @@
   export let durationSeconds: number | null = null;
   export let durationLength: number | null = null;
   export let chordTypes: string[] = [];
-  export let allChordTypes: string[] = [];
   export let onPlayAgain: () => void;
   export let learnMode: boolean = false;
   export let rootNotes: string[] = [];
@@ -16,22 +16,10 @@
   import { createEventDispatcher, onDestroy } from "svelte";
   const dispatch = createEventDispatcher();
 
-  // Chord type categories for consolidation
-  const chordTypeGroups: Record<string, string[]> = {
-    "Major & Minor": ["Major", "Minor"],
-    Sus: ["Sus2", "Sus4"],
-    Extended: [
-      "Maj7",
-      "Min7",
-      "Dom7",
-      "MinMaj7",
-      "Maj9",
-      "Min9",
-      "Dom9",
-      "Add9",
-    ],
-    "Dim & Aug": ["Dim", "Aug", "Dim7", "HalfDim7", "Aug7"],
-  };
+  // Get chord category groups for consolidation
+  const chordTypeGroups: Record<string, string[]> = getChordTypeGroups();
+
+  const allChordTypeCount = Object.values(chordTypeGroups).reduce((accumulator, curValue) => accumulator.concat(curValue), []).length;
 
   // Consolidate chord types into complete categories to save screen space
   function consolidateChordTypes(selected: string[]): string[] {
@@ -52,7 +40,6 @@
 
   $: consolidatedChordTypes = consolidateChordTypes(chordTypes);
   $: chordTypeCount = chordTypes.length;
-  $: allChordTypeCount = allChordTypes.length;
   let d = currentNotes.subscribe(async notes => {
     let combined = notes.map((note) => {
       return note.replace(/\d+/g, "");
@@ -144,20 +131,20 @@
 <style>
   .results-container {
     display: flex;
-    gap: 2rem; /* Reduced from 2.5rem */
+    gap: 2rem;
     justify-content: center;
     align-items: flex-start;
-    margin: 2rem auto 0 auto; /* Reduced from 3rem */
+    margin: 2rem auto 0 auto;
     max-width: 900px;
-    padding: 0 1rem; /* Added padding for smaller screens */
+    padding: 0 1rem;
   }
   .stats-box,
   .settings-box {
     background: rgba(255, 255, 255, 0.07);
     border-radius: 1.2rem;
     box-shadow: 0 2px 16px rgba(0, 0, 0, 0.13);
-    padding: 2rem 2rem 1.8rem 2rem; /* Reduced from 2.2rem 2.5rem 2rem 2.5rem */
-    min-width: 250px; /* Reduced from 270px */
+    padding: 2rem 2rem 1.8rem 2rem;
+    min-width: 250px;
     font-family: monospace;
     color: var(--text-color);
   }
@@ -169,24 +156,23 @@
   }
   .settings-box {
     flex: 1;
-    margin-left: 1.2rem; /* Reduced from 1.5rem */
+    margin-left: 1.2rem;
   }
   .cpm-main {
-    font-size: 2.5rem; /* Reduced from 2.7rem */
+    font-size: 2.5rem;
     font-weight: bold;
     color: #2ecc71;
-    margin: 1rem 0 0.6rem 0; /* Reduced from 1.2rem 0 0.7rem 0 */
+    margin: 1rem 0 0.6rem 0;
     display: flex;
     align-items: baseline;
-    gap: 0.6rem; /* Reduced from 0.7rem */
+    gap: 0.6rem;
   }
   .cpm-main span {
-    font-size: 1rem; /* Reduced from 1.1rem */
+    font-size: 1rem;
     color: #aaa;
     font-weight: 400;
   }
 
-  /* Add responsive design for smaller screens */
   @media (max-width: 768px) {
     .results-container {
       flex-direction: column;

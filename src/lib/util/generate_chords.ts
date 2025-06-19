@@ -1,8 +1,9 @@
 import type { GameSettings } from '$lib/stores/gameSettings';
 import { Chord, Note } from 'tonal';
+import { chordCategories } from './chordCategories';
 
 /**
- * Generate an array of chord objects based on the provided game settings.
+ * Generate an array of tonaljs chord objects based on the provided game settings.
  *
  * @param settings - The current game settings containing chordTypes and rootNotes.
  * @param count - The number of chords to generate.
@@ -10,9 +11,12 @@ import { Chord, Note } from 'tonal';
  */
 export function generateChords(settings: GameSettings, count: number): Array<{ name: string; notes: string[] }> {
     const { chordTypes, rootNotes: settingRootNotes, learnMode } = settings;
+    
+    // Default to Major & Minor if no chord types selected
+    const defaultChordTypes = chordCategories.find(cat => cat.name === "Major & Minor")?.chords || ['Major', 'Minor'];
     const availableChordTypes = Array.isArray(chordTypes) && chordTypes.length > 0
         ? chordTypes
-        : ['Major', 'Minor', 'Sus2', 'Sus4'];
+        : defaultChordTypes;
         
     // Map chord type names to Tonal chord symbols
     const chordSymbolMap: Record<string, string> = {
@@ -60,13 +64,12 @@ export function generateChords(settings: GameSettings, count: number): Array<{ n
     return result;
 }
 
-// CLI test
 if (typeof process !== 'undefined' && process.argv[1] && process.argv[1].endsWith('generate_chords.ts')) {
-    // Dummy settings: generate 15 chords of any type
+    const allChordTypes = chordCategories.flatMap(cat => cat.chords);
     const dummySettings: GameSettings = {
         durationSeconds: null,
         durationLength: null,
-        chordTypes: ["Major", "Minor", "Sus2", "Sus4", "Maj7", "Min7", "Dom7", "MinMaj7", "Maj9", "Min9", "Dom9", "Add9", "Dim", "Aug", "Dim7", "HalfDim7", "Aug7"],
+        chordTypes: allChordTypes,
         rootNotes: ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
         learnMode: false
     };

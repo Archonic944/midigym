@@ -56,6 +56,7 @@ Do not use %2_ for special characters.
 
 ## Utilities (`src/lib/util/`)
 
+- **chordCategories.ts**: Centralized definitions of chord categories and types used across the app. Provides interfaces and helper functions for consistent chord categorization.
 - **flatToSharp.ts**: Converts flat note names (e.g., Db) to sharps (e.g., C#).
 - **generate_chords.ts**: Generates random chord objects based on game settings (chord types and root notes) and chord type mappings using Tonal.
 
