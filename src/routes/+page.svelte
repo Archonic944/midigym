@@ -452,7 +452,7 @@
 />
 
 <div class="piano-bottom-center">
-    <Piano {currentNotes} showTooltips={inputMode === "keyboard"} learningNotes={(learnMode ? (chordsList[currentChordIndex] ? assignOctaveNumbers(chordsList[currentChordIndex].notes) : []) : [])}/>
+    <Piano {currentNotes} showTooltips={inputMode === "keyboard"} learningNotes={(learnMode && !gameFinished && pageState === "game" ? (chordsList[currentChordIndex] ? assignOctaveNumbers(chordsList[currentChordIndex].notes) : []) : [])}/>
 </div>
 
 <div class="footer-detail">
