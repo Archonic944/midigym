@@ -31,19 +31,19 @@
 <style>
 .card {
   aspect-ratio: 3 / 4;
-  width: min(80vw, 240px); /* Reduced from 260px */
-  min-width: 160px; /* Reduced from 180px */
-  max-width: 260px; /* Reduced from 280px */
-  /* Remove background color */
+  width: min(80vw, 240px); 
+  min-width: 160px; 
+  max-width: 260px; 
+  
   background: none;
-  border-radius: 1.3rem; /* Reduced from 1.5rem */
+  border-radius: 1.3rem; 
   border: 3px solid white;
   box-shadow: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 1.3rem 0.9rem 1rem 0.9rem; /* Reduced from 1.5rem 1rem 1.2rem 1rem */
+  padding: 1.3rem 0.9rem 1rem 0.9rem; 
   transition: 
     transform 0.18s cubic-bezier(.4,2,.6,1), 
     box-shadow 0.18s,
@@ -63,9 +63,9 @@
   border-color: white;
 }
 .card-title {
-  font-size: 1.2rem; /* Reduced from 1.25rem */
+  font-size: 1.2rem; 
   font-weight: 700;
-  margin-bottom: 1rem; /* Reduced from 1.1rem */
+  margin-bottom: 1rem; 
   text-align: center;
   color: var(--header-color, #689fe8);
   width: 100%;
@@ -77,20 +77,20 @@
   color: #689fe8;
 }
 .card-icon {
-  font-size: 6.5rem; /* Reduced from 7rem */
+  font-size: 6.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1rem; /* Reduced from 1.1rem */
-  min-height: 6.5rem; /* Reduced from 7rem */
+  margin-bottom: 1rem;
+  min-height: 6.5rem;
   width: 100%;
   text-align: center;
   user-select: none;
   transition: color 0.18s;
 }
 .icon-img {
-  width: 6.5rem; /* Reduced from 7rem */
-  height: 6.5rem; /* Reduced from 7rem */
+  width: 6.5rem; 
+  height: 6.5rem; 
   object-fit: contain;
   display: block;
   margin: 0 auto;
@@ -101,10 +101,10 @@
   filter: invert(0) brightness(1) contrast(1);
 }
 .card-description {
-  font-size: 0.9rem; /* Reduced from 1.13rem */
+  font-size: 0.9rem; 
   color: inherit;
   text-align: center;
-  margin-top: 0.4rem; /* Reduced from 0.5rem */
+  margin-top: 0.4rem; 
   margin-bottom: 0;
   flex-grow: 0;
   transition: color 0.18s;
@@ -114,7 +114,6 @@
   color: #222;
 }
 
-/* Add responsive design for even smaller screens */
 @media (max-width: 768px) {
   .card {
     width: min(80vw, 220px);

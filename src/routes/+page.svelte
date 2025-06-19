@@ -16,11 +16,12 @@
         clearCurrentNotes // Import the clearCurrentNotes action
     } from "$lib/stores/midiNotes";
     import RowPicker from "$lib/components/RowPicker.svelte";
-    import CheckboxPicker from "$lib/components/CheckboxPicker.svelte";
+    import ChordTypePicker from "$lib/components/ChordTypePicker.svelte";
     import { gameSettings } from "$lib/stores/gameSettings";
     import { generateChords } from "$lib/util/generate_chords";
     import { onDestroy, onMount } from "svelte";
     import { assignOctaveNumbers } from '$lib/util/miscUtil';
+  import { Chord } from 'tonal';
 
     let showMidiModal = false;
     let setupComplete = false;
@@ -40,7 +41,7 @@
     let gameStartTime: number;
     let currentElapsedTime: number = 0; // Track current elapsed time
     let gameFinished = false;
-    let finishedStats: { cpm: number; accuracy: number; correct: number; incorrect: number; durationSeconds: number | null; durationLength: string | null; chordTypes: string[]; allChordTypes: string[] } | null = null;
+    let finishedStats: { cpm: number; accuracy: number; correct: number; incorrect: number; durationSeconds: number | null; durationLength: string | null; chordTypes: string[];} | null = null;
     
     // Track streak and live stats (TODO: consolidate this within GameArea.svelte)
     let streak = 0;
@@ -245,7 +246,6 @@
             durationSeconds: elapsedMs / 1000,
             durationLength: $gameSettings.durationLength,
             chordTypes: $gameSettings.chordTypes,
-            allChordTypes: finishedStats?.allChordTypes || [] // unchanged
         };
         pageState = 'stats';
     }
@@ -381,7 +381,7 @@
             
             <div class="content-box chord-types-box">
                 <h3>Chord Types</h3>
-                <CheckboxPicker
+                <ChordTypePicker
                     selectedOptions={selectedChordTypes}
                     onSelectionChange={handleChordTypesChange}
                 />
@@ -415,7 +415,6 @@
         durationSeconds={finishedStats.durationSeconds}
         durationLength={finishedStats.durationLength}
         chordTypes={finishedStats.chordTypes}
-        allChordTypes={finishedStats.allChordTypes}
         learnMode={learnMode}
         rootNotes={selectedRootNotes}
         onPlayAgain={playAgain}
