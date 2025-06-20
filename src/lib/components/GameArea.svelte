@@ -64,13 +64,13 @@
       if (wrongNote) {
         incorrectCount++;
         flashError.set(true);
-        playSound('incorrect', 0.4);
+        setTimeout(() => playSound('incorrect', 0.4), 150)
         setTimeout(() => flashError.set(false), 300);
         dispatch('incorrect');
       } else {
         correctCount++;
-        playSound('correct');
         setTimeout(() => {
+          playSound('correct');
           clearCurrentNotes();
         }, 150);
         dispatch('progress', { correctCount });
@@ -82,16 +82,6 @@
         await tick();
         if (currentIndex < chords.length) {
           scrollTargetToTop();
-          {
-  const el = gameAreaRef.querySelectorAll<HTMLElement>('.chord')[currentIndex];
-  console.log({
-    idx: currentIndex,
-    offsetTop: el?.offsetTop,
-    scrollTop: gameAreaRef.scrollTop,
-    clientHeight: gameAreaRef.clientHeight,
-    scrollHeight: gameAreaRef.scrollHeight
-  });
-}
           updateOverflow();
         } else {
           // No more chords - congrats u finished!!
