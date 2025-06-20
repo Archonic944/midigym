@@ -36,7 +36,7 @@ Do not use %2_ for special characters.
 
 - **Card.svelte**: UI card with title, icon (SVG or emoji), and description. Emits click events.
 - **CardPicker.svelte**: Presents 1-4 Card options, handles selection logic.
-- **CheckboxPicker.svelte**: Lets user select chord types, grouped by category. Notifies parent on change.
+- **ChordTypePicker.svelte**: Lets user select chord types, grouped by category. Notifies parent on change.
 - **GameArea.svelte**: Core game logic. Listens to MIDI/computer keyboard notes, checks against target chords, tracks correct/incorrect answers, and emits progress/finished events. Supports learn mode to display chord notes.
 - **LiveStats.svelte**: Displays live statistics above the game area during gameplay. Shows CPM, accuracy, streak, time remaining/elapsed, and chords played. Updates in real-time as the user plays.
 - **MidiSetupModal.svelte**: Modal for MIDI device setup and calibration (e.g., setting middle C). Handles MIDI device selection and note detection.
