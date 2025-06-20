@@ -13,7 +13,7 @@
         currentNotes, 
         setupMidiAndKeyboard, 
         selectedMidiDevice, 
-        clearCurrentNotes // Import the clearCurrentNotes action
+        clearCurrentNotes
     } from "$lib/stores/midiNotes";
     import RowPicker from "$lib/components/RowPicker.svelte";
     import ChordTypePicker from "$lib/components/ChordTypePicker.svelte";
@@ -48,6 +48,15 @@
     let currentCpm = 0;
     let currentAccuracy = 100;
     let currentChordIndex = 0;
+    
+    // Toggle all/none function for root notes
+    function toggleAllRootNotes() {
+        if (selectedRootNotes.length === 12) {
+            selectedRootNotes = [];
+        } else {
+            selectedRootNotes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        }
+    }
     
     // Selected MIDI keyboard from store
     $: selectedKeyboard = $selectedMidiDevice;
@@ -392,7 +401,12 @@
                 
                 <div class="setting-section">
                     <h4>Root Notes</h4>
-                    <MiniPiano bind:selectedNotes={selectedRootNotes} />
+                    <div class="root-notes-container">
+                        <MiniPiano bind:selectedNotes={selectedRootNotes} />
+                        <button class="toggle-all-btn" on:click={toggleAllRootNotes}>
+                            {selectedRootNotes.length === 12 ? 'Deselect All' : 'Select All'}
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="setting-section">
@@ -484,6 +498,29 @@
         padding-top: 10vh;
     }
 
+    .root-notes-container {
+        position: relative;
+        width: 100%;
+    }
+    
+    .toggle-all-btn {
+        font-family: monospace;
+        font-size: 0.8rem;
+        background: #444;
+        color: #ddd;
+        border: 1px solid #555;
+        border-radius: 4px;
+        padding: 2px 6px;
+        cursor: pointer;
+        transition: all 0.15s;
+        margin-left: 35%;
+        margin-top: 0.2rem;
+    }
+    
+    .toggle-all-btn:hover {
+        background: var(--accent-color, #3498db);
+        color: #000;
+    }
 
     .piano-bottom-center {
         position: absolute;
