@@ -21,7 +21,6 @@
     import { generateChords } from "$lib/util/generate_chords";
     import { onDestroy, onMount } from "svelte";
     import { assignOctaveNumbers } from '$lib/util/miscUtil';
-  import { Chord } from 'tonal';
 
     let showMidiModal = false;
     let setupComplete = false;
