@@ -29,7 +29,10 @@
     let selectedDurationLength: string | null = null;
     let selectedChordTypes: string[] = [];
     let selectedRootNotes: string[] = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+    // Modifiers
     let learnMode = false;
+    let freeInversions = false;
+    let enableInversions = false;
     let chordsList: Array<{ name: string; notes: string[] }> = [];
     let timer = 0;
     let correctCountPage = 0;
@@ -82,13 +85,15 @@
         selectedChordTypes = selected;
     }
 
-    // Sync game settings store with duration, chord types, root notes and learn mode
+    // Sync game settings store with duration, chord types, root notes and modifiers
     $: gameSettings.set({
         durationSeconds: selectedDurationSeconds,
         durationLength: selectedDurationLength,
         chordTypes: selectedChordTypes,
         rootNotes: selectedRootNotes,
-        learnMode: learnMode
+        learnMode: learnMode,
+        freeInversions: freeInversions,
+        enableInversions: enableInversions
     });
 
     let inputMode: 'keyboard' | 'midi' | null = null;
@@ -393,6 +398,13 @@
                     selectedOptions={selectedChordTypes}
                     onSelectionChange={handleChordTypesChange}
                 />
+        <div class="inversions-toggle-row">
+            <label class="toggle-switch">
+                <input type="checkbox" bind:checked={enableInversions}>
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">Enable inversions</span>
+            </label>
+        </div>
             </div>
             
             <div class="content-box other-settings-box">
@@ -409,11 +421,16 @@
                 </div>
                 
                 <div class="setting-section">
-                    <h4>Learn Mode</h4>
+                    <h4>Modifiers</h4>
                     <label class="toggle-switch">
                         <input type="checkbox" bind:checked={learnMode}>
                         <span class="toggle-slider"></span>
-                        <span class="toggle-label">Show notes for chords</span>
+                        <span class="toggle-label">Learn mode</span>
+                    </label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" bind:checked={freeInversions}>
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Free inversions</span>
                     </label>
                 </div>
             </div>
@@ -494,7 +511,7 @@
         align-items: flex-start;
         justify-content: center;
         gap: 0;
-        padding-top: 10vh;
+        padding-top: 3.5vh;
     }
 
     .root-notes-container {
@@ -563,6 +580,26 @@
         border-radius: 12px;
         padding: 24px;
         gap: 20px;
+        max-height: calc(60vh - 40px); /* Reduce height to prevent overlap with piano */
+        overflow-y: auto;
+    }
+
+    .content-box::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .content-box::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+    }
+    
+    .content-box::-webkit-scrollbar-thumb {
+        background: var(--accent-color, #3498db);
+        border-radius: 4px;
+    }
+    
+    .content-box::-webkit-scrollbar-thumb:hover {
+        background: #1976d2;
     }
 
     .duration-box {
@@ -573,6 +610,16 @@
     .chord-types-box {
         min-width: 400px;
         max-width: 500px;
+    }
+    
+    .inversions-toggle-row {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 12px;
+        margin-bottom: 8px;
+        z-index: 2;
     }
     
     .other-settings-box {
