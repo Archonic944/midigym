@@ -7,7 +7,7 @@
 
 - Highly customizable: before beginning your test, you have fine-grained control over which root notes and chord types you'd like to play.
 - Simplistic interface: kind of like monkeytype in that it only shows you what you need to see.
-- Free: ad free, payment free, scam free, formaldehyde free, free next week, you name it. But, please ⭐️**STAR THIS REPOSITORY**⭐️ in the interest of [sending me to a private island hackathon](https://shipwrecked.hackclub.com/).
+- Free: ad free, payment free, scam free, formaldehyde free, free next week, you name it. ⭐️**STAR THIS REPOSITORY**⭐️ if you appreciate it!
 - MIDI keyboard support: uses WEBMIDI.js to deliver you stunning low-latency midi-enabled goodness.
 - Regular keyboard support: uses javascript event listners to deliver you stunning, low-latency computer keyboard support.
 - Learn mode: a mode that highlights the notes you need to play for each chord.
