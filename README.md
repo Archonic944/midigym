@@ -29,7 +29,7 @@ You may also submit feature requests to the issues page using the "enhancement" 
 
 ## Beta testing
 
-The site is *very* incomplete, and although I have tried to polish it as much as possible, please be aware that you are playing an incomplete version of the site. There are many features that some would consider necessary for the site to achieve its goals (see To-do) that are not present right now. When you play, *please* to [contact me](linktr.ee/archonic) with any small suggestions/personal gripes you may have with the site. If you find a **reproducable bug** or have a **comprehensive suggestion for a new feature**, please make a new post on the [issues page](https://github.com/Archonic944/midigym/issues).
+The site is polished, but is missing a couple features it would need to be considered "comprehensive". When you play, *please* to [contact me](linktr.ee/archonic) with any small suggestions/personal gripes you may have with the site. If you find a **reproducable bug** or have a **comprehensive suggestion for a new feature**, please make a new post on the [issues page](https://github.com/Archonic944/midigym/issues).
 
 ## Contributing
 
