@@ -143,4 +143,23 @@
     font-size: 1.1em;
   }
 }
+
+@media (max-width: 480px) {
+    .live-stats-bar {
+        font-size: 0.85rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.3em;
+    }
+    .stats-side {
+        flex: 0 0 auto;
+        gap: 0.5em;
+        padding: 0 0.8rem;
+    }
+    .stats-center {
+        flex: 1 1 100%;
+        order: -1;
+        font-size: 1.1em;
+    }
+}
 </style>
