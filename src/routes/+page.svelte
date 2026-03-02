@@ -8,6 +8,7 @@
     import LiveStats from '$lib/components/LiveStats.svelte';
     import MiniPiano from '$lib/components/MiniPiano.svelte';
     import { playSound, preloadAllSounds } from "$lib/util/soundManager";
+    import { saveSettings, loadSettings } from "$lib/util/settingsCookie";
 
     import { 
         currentNotes, 
@@ -209,6 +210,14 @@
             // No need to call updateLiveStats() here as it's handled independently
         }, 1000);
         
+        saveSettings({
+            inputMode,
+            durationSeconds: selectedDurationSeconds,
+            durationLength: selectedDurationLength,
+            chordTypes: selectedChordTypes,
+            rootNotes: selectedRootNotes,
+            learnMode,
+        });
         pageState = 'game';
     }
 
@@ -287,6 +296,21 @@
 
     onMount(() => {
         preloadAllSounds();
+        const saved = loadSettings();
+        if (saved) {
+            selectedDurationSeconds = saved.durationSeconds;
+            selectedDurationLength = saved.durationLength;
+            selectedChordTypes = saved.chordTypes;
+            selectedRootNotes = saved.rootNotes;
+            learnMode = saved.learnMode;
+            if (saved.inputMode === 'keyboard') {
+                setupMidiAndKeyboard("keyboard");
+                setupComplete = true;
+                inputMode = "keyboard";
+                pageState = 'settings';
+            }
+            // If midi, stay on input page (device may be stale)
+        }
     });
 
     onDestroy(() => {
