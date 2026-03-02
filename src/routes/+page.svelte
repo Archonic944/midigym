@@ -349,9 +349,7 @@
     <div class="banner-center">
         <span class="banner-title">midigym <strong>(beta)</strong></span>
     </div>
-    <div class="banner-right">
-        <span class="fullscreen-recommended">fullscreen recommended</span>
-    </div>
+    <div class="banner-right"></div>
 </div>
 
 {#if pageState === 'input'}
@@ -510,15 +508,12 @@
         min-height: 60vh;
     }
     .main-layout {
-        position: relative;
-        width: 100vw;
-        height: 80vh;
+        width: 100%;
         display: flex;
-        flex-direction: row;
-        align-items: flex-start;
-        justify-content: center;
-        gap: 0;
-        padding-top: 10vh;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem 1rem;
+        box-sizing: border-box;
     }
 
     .root-notes-container {
@@ -546,14 +541,11 @@
     }
 
     .piano-bottom-center {
-        position: absolute;
-        left: 50%;
-        bottom: 2vh;
-        transform: translateX(-50%);
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        z-index: 1;
+        justify-content: center;
+        width: 100%;
+        padding-bottom: 1rem;
+        margin-top: auto;
     }
 
     .notes-list-debug {
@@ -574,8 +566,12 @@
 
     .content-boxes {
         display: flex;
+        flex-wrap: wrap;
         gap: 24px;
         z-index: 1;
+        justify-content: center;
+        max-width: 1200px;
+        width: 100%;
     }
 
     .content-box {
@@ -587,23 +583,30 @@
         border-radius: 12px;
         padding: 24px;
         gap: 20px;
-    }
-
-    .duration-box {
-        min-width: 300px;
+        flex: 1 1 280px;
+        min-width: 0;
         max-width: 400px;
     }
 
     .chord-types-box {
-        min-width: 400px;
         max-width: 500px;
     }
-    
-    .other-settings-box {
-        min-width: 300px;
-        max-width: 400px;
+
+    @media (max-width: 600px) {
+        .content-boxes {
+            flex-direction: column;
+            align-items: center;
+        }
+        .content-box {
+            width: 100%;
+            max-width: none;
+            flex: none;
+        }
+        .chord-types-box {
+            max-width: none;
+        }
     }
-    
+
     .setting-section {
         width: 100%;
         margin-bottom: 16px;
@@ -739,36 +742,33 @@
     }
 
     .banner {
-        width: 100vw;
+        width: 100%;
         min-height: 38px;
         background: var(--black, #111);
         color: var(--text-color, #fff);
         display: flex;
         align-items: center;
-        justify-content: center;
-        position: relative;
+        justify-content: space-between;
         z-index: 1003;
         font-size: 1.05rem;
         border-bottom: 1.5px solid #222;
         box-shadow: 0 2px 12px rgba(0,0,0,0.10);
-        padding: 0.2rem 0;
+        padding: 0.2rem 1.5rem;
         letter-spacing: 0.04em;
+        box-sizing: border-box;
     }
     .banner-left, .banner-center, .banner-right {
         display: flex;
         align-items: center;
-        height: 100%;
     }
     .banner-left {
-        position: absolute;
-        left: 1.5rem;
-        top: 0;
-        height: 100%;
         gap: 0.7rem;
+        flex-shrink: 0;
     }
     .banner-center {
         flex: 1;
         justify-content: center;
+        min-width: 0;
     }
     .banner-title {
         font-family: monospace;
@@ -847,21 +847,23 @@
         display: flex;
         flex-direction: column;
         align-items: stretch;
-        min-height: 100vh;
-        width: 100vw;
+        width: 100%;
     }
 
     .footer-detail {
-        position: fixed;
-        left: 1.2rem;
-        bottom: 1.2rem;
-        z-index: 2000;
+        text-align: center;
+        padding: 0.5rem 1rem;
         font-size: 0.93rem;
         color: #888;
         font-family: monospace;
         opacity: 0.85;
         line-height: 1.3;
-        text-align: left;
+    }
+
+    @media (max-width: 600px) {
+        .footer-detail {
+            font-size: 0.8rem;
+        }
     }
     .footer-link {
         color: #888;
@@ -872,20 +874,19 @@
         color: var(--accent-color, #2196f3);
     }
     .banner-right {
-        position: absolute;
-        right: 1.5rem;
-        top: 0;
-        height: 100%;
-        display: flex;
-        align-items: center;
+        flex-shrink: 0;
     }
-    .fullscreen-recommended {
-        font-size: 0.98em;
-        color: #aaa;
-        opacity: 0.85;
-        font-family: monospace;
-        margin-left: 0.7em;
-        letter-spacing: 0.01em;
-        user-select: none;
+
+    @media (max-width: 600px) {
+        .banner {
+            padding: 0.2rem 0.8rem;
+            font-size: 0.95rem;
+        }
+        .banner-tooltip {
+            display: none;
+        }
+        .banner-title {
+            font-size: 1.1rem;
+        }
     }
 </style>
