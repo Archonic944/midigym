@@ -748,7 +748,9 @@
         color: var(--text-color, #fff);
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: center;
+        position: sticky;
+        top: 0;
         z-index: 1003;
         font-size: 1.05rem;
         border-bottom: 1.5px solid #222;
@@ -760,18 +762,20 @@
     .banner-left, .banner-center, .banner-right {
         display: flex;
         align-items: center;
+        height: 100%;
     }
     .banner-left {
+        position: absolute;
+        left: 1.5rem;
         gap: 0.7rem;
-        flex-shrink: 0;
     }
     .banner-center {
         flex: 1;
         justify-content: center;
-        min-width: 0;
     }
     .banner-right {
-        flex-shrink: 0;
+        position: absolute;
+        right: 1.5rem;
     }
     .banner-title {
         font-family: monospace;
