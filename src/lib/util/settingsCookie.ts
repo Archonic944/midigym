@@ -20,7 +20,10 @@ export function loadSettings(): SavedSettings | null {
   const match = document.cookie.match(new RegExp(`(?:^|; )${COOKIE_NAME}=([^;]*)`));
   if (!match) return null;
   try {
-    return JSON.parse(decodeURIComponent(match[1]));
+    const parsed = JSON.parse(decodeURIComponent(match[1]));
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (!Array.isArray(parsed.chordTypes) || !Array.isArray(parsed.rootNotes)) return null;
+    return parsed as SavedSettings;
   } catch {
     return null;
   }

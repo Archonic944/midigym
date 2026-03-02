@@ -770,6 +770,9 @@
         justify-content: center;
         min-width: 0;
     }
+    .banner-right {
+        flex-shrink: 0;
+    }
     .banner-title {
         font-family: monospace;
         font-size: 1.25rem;
@@ -873,10 +876,6 @@
     .footer-link:hover {
         color: var(--accent-color, #2196f3);
     }
-    .banner-right {
-        flex-shrink: 0;
-    }
-
     @media (max-width: 600px) {
         .banner {
             padding: 0.2rem 0.8rem;
