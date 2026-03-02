@@ -21,11 +21,12 @@
   const flashError = writable(false);
 
   let gameAreaRef: HTMLElement;
-  let hasOverflow = false;
+  let hasOverflowBottom = false;
 
   function updateOverflow() {
     if (gameAreaRef) {
-      hasOverflow = gameAreaRef.scrollHeight > gameAreaRef.clientHeight;
+      const { scrollTop, scrollHeight, clientHeight } = gameAreaRef;
+      hasOverflowBottom = scrollTop + clientHeight < scrollHeight - 2;
     }
   }
 
@@ -109,9 +110,11 @@
       }
     });
     if (gameAreaRef) resizeObs.observe(gameAreaRef);
+    if (gameAreaRef) gameAreaRef.addEventListener('scroll', updateOverflow);
     window.addEventListener('resize', updateOverflow);
     return () => {
       resizeObs.disconnect();
+      if (gameAreaRef) gameAreaRef.removeEventListener('scroll', updateOverflow);
       window.removeEventListener('resize', updateOverflow);
     };
   });
@@ -155,10 +158,10 @@
         {/if}
       </span>
     {/each}
-    {#if hasOverflow}
-      <div class="fade-bottom"></div>
-    {/if}
   </div>
+  {#if hasOverflowBottom}
+    <div class="fade-bottom"></div>
+  {/if}
 </div>
 
 <div class="counters">
