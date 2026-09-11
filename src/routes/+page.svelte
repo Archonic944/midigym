@@ -492,7 +492,7 @@
 
 <div class="footer-detail">
     <div>
-        made with <span style="color:#e74c3c">&lt;3</span> by <a href="https://linktr.ee/archonic" target="_blank" rel="noopener" class="footer-link">archonic</a>
+        made with <span style="color:#e74c3c">&lt;3</span> by <a href="https://gabe.so" target="_blank" rel="noopener" class="footer-link">archonic</a>
     </div>
     <div>
         <a href="https://github.com/Archonic944/midigym/issues" target="_blank" rel="noopener" class="footer-link">report issues on GitHub</a>
