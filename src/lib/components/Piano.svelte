@@ -30,10 +30,6 @@
     }
   }
 
-  $: {
-    console.log(learningNotes + " are learning notes");
-  }
-
   const noteToIndex: Record<string, number> = {
     'C3': 0,  'C#3': 1,  'D3': 2,  'D#3': 3,  'E3': 4,  'F3': 5,  'F#3': 6,  'G3': 7,  'G#3': 8,  'A3': 9,  'A#3': 10, 'B3': 11,
     'C4': 12, 'C#4': 13, 'D4': 14, 'D#4': 15, 'E4': 16, 'F4': 17, 'F#4': 18, 'G4': 19, 'G#4': 20, 'A4': 21, 'A#4': 22, 'B4': 23
@@ -43,9 +39,6 @@
 
   const noteToKey: Record<string, string> = reverseMap(keyboardToNoteMap);
 
-  console.log(Object.entries(indexToNote));
-  console.log(Object.entries(noteToKey));
-
   function isLearningKey(index: number): boolean {
     const note = indexToNote[index];
     return learningNotes.includes(note);
@@ -54,7 +47,6 @@
   // Update keyColors whenever currentNotes changes
   $: {
     keyColors = Array(24).fill(null);
-    console.log($currentNotes);
     for (const note of $currentNotes) {
       const idx = noteToIndex[note];
       if (typeof idx === 'number') {
@@ -71,11 +63,8 @@
     {#each whiteKeyIndices as i}
       <div
         class="white-key {isLearningKey(i) ? 'learning-key' : ''}"
-        style="
-          border-color: {keyColors[i] || 'white'};
-          box-shadow: {keyColors[i] ? `0 0 16px 2px ${keyColors[i]}` : 'none'};
-          background: {keyColors[i] ? keyColors[i] : 'none'};
-        "
+        class:pressed={!!keyColors[i]}
+        style:--key-color={keyColors[i]}
       >
         {#if isLearningKey(i)}
           <span class="learning-outline"></span>
@@ -88,13 +77,9 @@
     {#each blackKeyIndices as { idx, afterWhite } }
       <div
         class="black-key {isLearningKey(idx) ? 'learning-key' : ''}"
-        style="
-          left: calc((100% / {whiteKeyIndices.length}) * ({afterWhite} + 1));
-          border-color: {keyColors[idx] || 'white'};
-          box-shadow: {keyColors[idx] ? `0 0 16px 2px ${keyColors[idx]}` : 'none'};
-          background: {keyColors[idx] ? keyColors[idx] : 'var(--background-color)'};
-          transform: translateX(-50%);
-        "
+        class:pressed={!!keyColors[idx]}
+        style:--key-color={keyColors[idx]}
+        style:left="calc((100% / {whiteKeyIndices.length}) * ({afterWhite} + 1))"
       >
         {#if isLearningKey(idx)}
           <span class="learning-outline"></span>
@@ -155,6 +140,14 @@
   flex-direction: column;
   justify-items: center;
 }
+/* Press lights up instantly (no transition); release fades out via the base transition. */
+.white-key.pressed,
+.black-key.pressed {
+  border-color: var(--key-color);
+  box-shadow: 0 0 16px 2px var(--key-color);
+  background: var(--key-color);
+  transition: none;
+}
 .white-key:last-child {
   margin-right: 0;
 }
@@ -176,6 +169,7 @@
   border-radius: 0 0 6px 6px;
   box-sizing: border-box;
   transition: border-color 0.2s, box-shadow 0.2s;
+  transform: translateX(-50%);
   pointer-events: none;
   display: flex;
   flex-direction: column;

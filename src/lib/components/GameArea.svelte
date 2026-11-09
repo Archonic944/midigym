@@ -1,13 +1,12 @@
 <script lang="ts">
-  import { clearCurrentNotes, currentNotes } from "$lib/stores/midiNotes";
+  import { currentNotes } from "$lib/stores/midiNotes";
   import { onDestroy, createEventDispatcher, onMount, tick } from "svelte";
-  import { writable } from "svelte/store";
+  import { get, writable } from "svelte/store";
   import { playSound } from "$lib/util/soundManager";
-  import { Chord, Note } from "tonal";
-  import { formatNote} from "../util/flatToSharp";
+  import { formatNote } from "../util/flatToSharp";
 
-  let pianoRef: any = null;
   const dispatch = createEventDispatcher();
+  const NOTE_ORDER = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
   export let chords: Array<{ name: string; notes: string[] }> = [];
   export let learnMode: boolean = false;
@@ -43,52 +42,52 @@
     gameAreaRef.scrollTo({ top: y, behavior: 'smooth' });
   }
 
-  // listen for note changes
-  const unsub = currentNotes.subscribe(async notes => {
-    const target = chords[currentIndex];
-    if (!target) {
-      console.warn("No target chord found at index " + currentIndex);
-      return;
-    }
+  // Delay before the correct/incorrect feedback sound so it doesn't mask the chord itself.
+  // Scheduled on the audio clock; game state updates immediately regardless.
+  const FEEDBACK_SOUND_DELAY_S = 0.15;
 
-    if (notes.length === 0) return;
+  // Target notes for each chord, normalized once up front instead of on every key event.
+  $: targetNotesList = chords.map(c => c.notes.map(formatNote));
 
-    // Prune + sort notes (pruning gets rid of octave number)
-    let prunedNotes = sortAndPruneNotes(notes);
-    let targetNotes = [...target.notes].map(formatNote);
+  let prevNoteCount = get(currentNotes).length;
 
-    // Only check for an incorrect chord when the user plays the same amount of notes as the target chord
-    const wrongNote = !targetNotes.join("").includes(prunedNotes.join(""));
-    if (targetNotes.length === prunedNotes.length) {
-      console.log("Target notes: " + targetNotes);
-      console.log("Player notes: " + prunedNotes);
-      if (wrongNote) {
-        incorrectCount++;
-        flashError.set(true);
-        setTimeout(() => playSound('incorrect', 0.4), 150)
-        setTimeout(() => flashError.set(false), 300);
-        dispatch('incorrect');
-      } else {
-        correctCount++;
-        setTimeout(() => {
-          playSound('correct');
-          clearCurrentNotes();
-        }, 150);
-        dispatch('progress', { correctCount });
-        echoIdx.set(currentIndex);
-        setTimeout(() => echoIdx.set(null), 600);
+  // Notes in currentNotes always mirror the keys physically held down, so common tones can be
+  // held across chords. A chord is checked whenever the held set matches the target's size:
+  //  - a match on any change (press or release) counts as correct
+  //  - a mismatch only counts as incorrect on a key *press*, so releasing keys never penalizes
+  const unsub = currentNotes.subscribe(notes => {
+    const pressed = notes.length > prevNoteCount;
+    prevNoteCount = notes.length;
 
-        currentIndex++;
+    const targetNotes = targetNotesList?.[currentIndex];
+    if (!targetNotes || notes.length !== targetNotes.length) return;
+
+    const played = sortAndPruneNotes(notes);
+    const isCorrect = played.every((n, i) => n === targetNotes[i]);
+
+    if (isCorrect) {
+      correctCount++;
+      playSound('correct', 0.5, FEEDBACK_SOUND_DELAY_S);
+      echoIdx.set(currentIndex);
+      setTimeout(() => echoIdx.set(null), 600);
+      currentIndex++;
+      dispatch('progress', { correctCount });
+      if (currentIndex < chords.length) {
         // After DOM updates, scroll the new target into view
-        await tick();
-        if (currentIndex < chords.length) {
+        tick().then(() => {
           scrollTargetToTop();
           updateOverflow();
-        } else {
-          // No more chords - congrats u finished!!
-          dispatch('finished', {});
-        }
+        });
+      } else {
+        // No more chords - congrats u finished!!
+        dispatch('finished', {});
       }
+    } else if (pressed) {
+      incorrectCount++;
+      playSound('incorrect', 0.4, FEEDBACK_SOUND_DELAY_S);
+      flashError.set(true);
+      setTimeout(() => flashError.set(false), 300);
+      dispatch('incorrect');
     }
   });
   onDestroy(unsub);
@@ -125,16 +124,17 @@
    * @returns Sorted array of note names without octave numbers (e.g., ["C", "D#", "A"])
    */
   export function sortAndPruneNotes(notes: string[]): string[] {
-    const noteOrder = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-    function parseNote(note: string) {
-      const match = note.match(/^([A-G]#?)(\d+)$/);
-      if (!match) throw new Error(`Invalid note format: ${note}`);
-      return { note: match[1], octave: parseInt(match[2], 10) };
-    }
-    return [...notes]
-      .map(parseNote)
-      .sort((a, b) => a.octave - b.octave || noteOrder.indexOf(a.note) - noteOrder.indexOf(b.note))
-      .map(n => n.note);
+    return notes
+      .map(noteToMidi)
+      .filter((n): n is number => n !== null)
+      .sort((a, b) => a - b)
+      .map(n => NOTE_ORDER[((n % 12) + 12) % 12]);
+  }
+
+  function noteToMidi(note: string): number | null {
+    const match = note.match(/^([A-G]#?)(-?\d+)$/);
+    if (!match) return null;
+    return NOTE_ORDER.indexOf(match[1]) + (parseInt(match[2], 10) + 1) * 12;
   }
 </script>
 

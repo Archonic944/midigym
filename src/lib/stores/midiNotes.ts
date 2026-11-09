@@ -39,9 +39,11 @@ const keyToNote: Record<string, string> = {
 export const keyboardToNoteMap = keyToNote;
 
 // --- MIDI note adjustment logic ---
+const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
 // Helper: MIDI note name to MIDI number (C4 = 60)
 function noteNameToMidiNumber(note: string): number {
-  const match = note.match(/^([A-Ga-g])([#b]?)(\d)$/);
+  const match = note.match(/^([A-Ga-g])([#b]?)(-?\d+)$/);
   if (!match) return 60; // fallback to C4
   const [, letter, accidental, octaveStr] = match;
   const octave = parseInt(octaveStr, 10);
@@ -56,71 +58,70 @@ function noteNameToMidiNumber(note: string): number {
 
 // Helper: MIDI number to note name (e.g. 60 -> C4)
 function midiNumberToNoteName(num: number): string {
-  const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-  const note = notes[num % 12];
-  const octave = Math.floor(num / 12) - 1;
-  return `${note}${octave}`;
+  return `${NOTE_NAMES[((num % 12) + 12) % 12]}${Math.floor(num / 12) - 1}`;
 }
 
 const STANDARD_MIDDLE_C = 60;
-function adjustNoteIdentifier(noteIdentifier: string): string {
-  const userRoot = get(rootNote);
-  const userRootNum = noteNameToMidiNumber(userRoot);
-  const offset = STANDARD_MIDDLE_C - userRootNum;
-  if (offset === 0) return noteIdentifier;
-  const midiNum = noteNameToMidiNumber(noteIdentifier);
-  return midiNumberToNoteName(midiNum + offset);
+// Calibration offset, kept in sync with rootNote so the hot path doesn't re-read/parse the store.
+let midiOffset = 0;
+rootNote.subscribe(root => {
+  midiOffset = STANDARD_MIDDLE_C - noteNameToMidiNumber(root);
+});
+
+function pressNote(note: string) {
+  if (activeNotes.has(note)) return;
+  activeNotes.add(note);
+  // Sound first, so audio starts before any subscriber work runs.
+  playSound(note, 0.6);
+  currentNotes.set(Array.from(activeNotes));
+}
+
+function releaseNote(note: string) {
+  if (!activeNotes.delete(note)) return;
+  currentNotes.set(Array.from(activeNotes));
 }
 
 function handleNoteOn(e: NoteMessageEvent) {
-  const adjNote = adjustNoteIdentifier(e.note.identifier);
-  
-  // If in calibration mode, pass the note to the callback and return
+  // If in calibration mode, pass the raw note to the callback and return
   if (isCalibrationMode && calibrationCallback) {
     calibrationCallback(e.note.identifier);
     return;
   }
-  
-  activeNotes.add(adjNote);
-  currentNotes.set(Array.from(activeNotes));
-  
-  playSound(adjNote, 0.6);
+  pressNote(midiNumberToNoteName(e.note.number + midiOffset));
 }
 
 function handleNoteOff(e: NoteMessageEvent) {
-  const adjNote = adjustNoteIdentifier(e.note.identifier);
-  activeNotes.delete(adjNote);
-  currentNotes.set(Array.from(activeNotes));
+  releaseNote(midiNumberToNoteName(e.note.number + midiOffset));
 }
 
 function handleKeyDown(event: KeyboardEvent) {
-  const note = keyToNote[event.key];
-  if (note && !activeNotes.has(note)) {
-    // If in calibration mode, pass the note to the callback and return
-    if (isCalibrationMode && calibrationCallback) {
-      calibrationCallback(note);
-      return;
-    }
-    
-    activeNotes.add(note);
-    currentNotes.set(Array.from(activeNotes));
-    
-    playSound(note, 0.6);
+  if (event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
+  const note = keyToNote[event.key.toLowerCase()];
+  if (!note) return;
+  // If in calibration mode, pass the note to the callback and return
+  if (isCalibrationMode && calibrationCallback) {
+    calibrationCallback(note);
+    return;
   }
+  pressNote(note);
 }
 
 function handleKeyUp(event: KeyboardEvent) {
-  const note = keyToNote[event.key];
-  if (note && activeNotes.has(note)) {
-    activeNotes.delete(note);
-    currentNotes.set(Array.from(activeNotes));
-  }
+  const note = keyToNote[event.key.toLowerCase()];
+  if (note) releaseNote(note);
+}
+
+// Keyup events are lost if the window loses focus while keys are held, which would leave
+// notes stuck "down" and block every following chord. Drop held notes on blur.
+function handleBlur() {
+  clearCurrentNotes();
 }
 
 function enableComputerKeyboard() {
   if (typeof window !== 'undefined') {
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', handleBlur);
   }
 }
 
@@ -128,6 +129,7 @@ function disableComputerKeyboard() {
   if (typeof window !== 'undefined') {
     window.removeEventListener('keydown', handleKeyDown);
     window.removeEventListener('keyup', handleKeyUp);
+    window.removeEventListener('blur', handleBlur);
   }
 }
 
